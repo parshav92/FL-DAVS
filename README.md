@@ -1,4 +1,4 @@
-# MedBlockDFL
+# FL+DAVS
 
 A medical blockchain project with distributed federated learning.
 
