@@ -1,2 +1,50 @@
+# Virtual Environment
+fl_davs_env/
+venv/
+env/
+*.pyc
+__pycache__/
+*/__pycache__/
+models/__pycache__/
+data/__pycache__/
+federated/__pycache__/
+utils/__pycache__/
+
+# Data and Results
+data/
+results/
+saved_models/
+*.pth
+*.pt
+
+# Documentation
+NEXT_STEPS.md
+PHASE1_README.md
+PHASE1_SETUP.md
+SETUP_COMPLETE.md
+STATUS.txt
 implementation.md
-fl_davs_env
+*.md.backup
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp

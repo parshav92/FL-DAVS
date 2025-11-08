@@ -20,6 +20,6 @@ NUM_ROUNDS = 20  # Total federated learning rounds
 DEVICE = "cpu"  # Change to "cuda" if GPU is available
 
 # Paths
-DATA_DIR = "./data/medmnist"
-MODEL_SAVE_DIR = "./models/saved"
+DATA_DIR = "./data"  # MedMNIST will create subdirectories here
+MODEL_SAVE_DIR = "./saved_models"
 RESULTS_DIR = "./results"
