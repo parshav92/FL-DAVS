@@ -5,8 +5,8 @@ Federated Learning package for FL+DAVS
 from .client import FederatedClient, create_clients
 from .server import FederatedServer
 from .aggregation import fedavg, weighted_average, aggregate_metrics, AggregationStrategy
-from .gradient_sketching import CountSketch, GradientCompressor
-from .davs_selection import DAVSSelector, DataQualityMetrics
+from .gradient_sketching import RandomProjectionSketcher, GradientSketcherForDAVS, create_shared_sketcher
+from .davs_selection import DAVSSelector
 
 __all__ = [
     'FederatedClient',
@@ -16,8 +16,8 @@ __all__ = [
     'weighted_average',
     'aggregate_metrics',
     'AggregationStrategy',
-    'CountSketch',
-    'GradientCompressor',
-    'DAVSSelector',
-    'DataQualityMetrics'
+    'RandomProjectionSketcher',
+    'GradientSketcherForDAVS',
+    'create_shared_sketcher',
+    'DAVSSelector'
 ]

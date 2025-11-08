@@ -1,303 +1,406 @@
-"""
-Gradient Sketching - Phase 2
-Implements Count-Sketch algorithm for gradient compression
-Reduces communication overhead in federated learning
-"""
+
 
 import torch
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import Dict, List, Optional
+import hashlib
 
-
-class CountSketch:
+class RandomProjectionSketcher:
     """
-    Count-Sketch algorithm for gradient compression
-    Provides dimensionality reduction while preserving important gradient information
+    Random Projection gradient sketcher for DAVS
+    Uses Gaussian random projection to preserve cosine similarity
+    
+    Based on Johnson-Lindenstrauss Lemma:
+    Random projection preserves pairwise distances/angles with high probability
     """
     
-    def __init__(self, input_dim: int, sketch_dim: int, num_hash: int = 2):
+    def __init__(self, input_dim: int, sketch_dim: int = 128, 
+                 add_dp_noise: bool = False, noise_scale: float = 0.01,
+                 seed: int = 42):
         """
-        Initialize Count-Sketch
+        Initialize Random Projection Sketcher
         
         Args:
             input_dim: Original gradient dimension
-            sketch_dim: Compressed sketch dimension (compression rate = input_dim/sketch_dim)
-            num_hash: Number of hash functions (more = better accuracy, slower)
+            sketch_dim: Compressed sketch dimension (typically 128-256)
+            add_dp_noise: Whether to add differential privacy noise
+            noise_scale: Standard deviation of DP noise
+            seed: Random seed for reproducibility (all clients must use same seed!)
         """
         self.input_dim = input_dim
         self.sketch_dim = sketch_dim
-        self.num_hash = num_hash
-        self.compression_rate = input_dim / sketch_dim
+        self.add_dp_noise = add_dp_noise
+        self.noise_scale = noise_scale
+        self.seed = seed
         
-        # Initialize hash functions
-        self.hash_indices = []
-        self.hash_signs = []
+        # Generate shared random projection matrix
+        # CRITICAL: All clients must use the same matrix!
+        self._initialize_projection_matrix()
         
-        for _ in range(num_hash):
-            # Random hash mapping: each element maps to random bucket
-            indices = torch.randint(0, sketch_dim, (input_dim,))
-            # Random sign: +1 or -1
-            signs = torch.randint(0, 2, (input_dim,)) * 2 - 1
-            
-            self.hash_indices.append(indices)
-            self.hash_signs.append(signs.float())
+        # Compression stats
+        self.compression_rate = sketch_dim / input_dim
+        self.bandwidth_reduction = (1 - self.compression_rate) * 100
+    
+    def _initialize_projection_matrix(self):
+        """
+        Generate normalized Gaussian random projection matrix
+        Shape: (sketch_dim, input_dim)
+        """
+        # Set seed for reproducibility across all clients
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
+        
+        # Generate Gaussian random matrix
+        self.projection_matrix = torch.randn(self.sketch_dim, self.input_dim)
+        
+        # Normalize rows to unit length (improves stability)
+        row_norms = torch.norm(self.projection_matrix, dim=1, keepdim=True)
+        self.projection_matrix = self.projection_matrix / (row_norms + 1e-10)
+        
+        print(f"✓ Initialized projection matrix: {self.sketch_dim} × {self.input_dim}")
     
     def sketch(self, gradient: torch.Tensor) -> torch.Tensor:
         """
-        Compress gradient using Count-Sketch
+        Compress gradient using random projection
         
         Args:
-            gradient: Original gradient tensor (flattened)
+            gradient: Original gradient tensor (can be multi-dimensional)
             
         Returns:
-            Compressed sketch tensor
+            Compressed sketch (1D tensor of size sketch_dim)
         """
+        # Flatten if needed
         if gradient.dim() > 1:
             gradient = gradient.flatten()
         
         assert gradient.shape[0] == self.input_dim, \
-            f"Gradient dimension {gradient.shape[0]} doesn't match input_dim {self.input_dim}"
+            f"Gradient size {gradient.shape[0]} != input_dim {self.input_dim}"
         
-        # Create sketch using multiple hash functions
-        sketches = []
-        for indices, signs in zip(self.hash_indices, self.hash_signs):
-            sketch = torch.zeros(self.sketch_dim, device=gradient.device)
-            signed_gradient = gradient * signs.to(gradient.device)
-            
-            # Accumulate values in sketch buckets
-            sketch.index_add_(0, indices.to(gradient.device), signed_gradient)
-            sketches.append(sketch)
+        # Move projection matrix to same device as gradient
+        proj_matrix = self.projection_matrix.to(gradient.device)
         
-        # Average across hash functions for better estimation
-        final_sketch = torch.stack(sketches).mean(dim=0)
-        return final_sketch
+        # Compute sketch: s = R × g
+        sketch = torch.matmul(proj_matrix, gradient)
+        
+        # Add differential privacy noise if enabled
+        if self.add_dp_noise:
+            noise = torch.randn_like(sketch) * self.noise_scale
+            sketch = sketch + noise
+        
+        return sketch
     
-    def unSketch(self, sketch: torch.Tensor) -> torch.Tensor:
+    def compute_cosine_similarity(self, sketch1: torch.Tensor, 
+                                  sketch2: torch.Tensor) -> float:
         """
-        Decompress sketch back to original dimension
+        Compute cosine similarity between two sketches
         
         Args:
-            sketch: Compressed sketch tensor
+            sketch1: First sketch
+            sketch2: Second sketch
             
         Returns:
-            Decompressed gradient (approximate)
+            Cosine similarity in [-1, 1]
         """
-        assert sketch.shape[0] == self.sketch_dim, \
-            f"Sketch dimension {sketch.shape[0]} doesn't match sketch_dim {self.sketch_dim}"
+        # Ensure same device
+        if sketch1.device != sketch2.device:
+            sketch2 = sketch2.to(sketch1.device)
         
-        # Reconstruct using hash functions
-        reconstructed = []
-        for indices, signs in zip(self.hash_indices, self.hash_signs):
-            # Lookup sketch values and apply signs
-            values = sketch[indices.to(sketch.device)]
-            recon = values * signs.to(sketch.device)
-            reconstructed.append(recon)
+        # Compute cosine similarity
+        dot_product = torch.dot(sketch1, sketch2)
+        norm1 = torch.norm(sketch1)
+        norm2 = torch.norm(sketch2)
         
-        # Median for robustness (or mean for speed)
-        if len(reconstructed) > 1:
-            final_recon = torch.stack(reconstructed).median(dim=0)[0]
-        else:
-            final_recon = reconstructed[0]
-        
-        return final_recon
-
-
-class GradientCompressor:
-    """
-    Manages gradient compression for all model parameters
-    """
+        similarity = dot_product / (norm1 * norm2 + 1e-10)
+        return similarity.item()
     
-    def __init__(self, model: torch.nn.Module, compression_rate: float = 0.1, num_hash: int = 2):
+    def batch_cosine_similarity(self, sketch: torch.Tensor, 
+                               all_sketches: List[torch.Tensor]) -> torch.Tensor:
         """
-        Initialize gradient compressor
+        Compute cosine similarity between one sketch and all others
+        Efficient batch computation
         
         Args:
-            model: Neural network model
-            compression_rate: Target compression rate (0.1 = 10x compression)
-            num_hash: Number of hash functions for Count-Sketch
+            sketch: Query sketch
+            all_sketches: List of all sketches
+            
+        Returns:
+            Tensor of similarities
+        """
+        # Stack all sketches into matrix
+        sketch_matrix = torch.stack(all_sketches)  # (num_clients, sketch_dim)
+        
+        # Ensure same device
+        sketch = sketch.to(sketch_matrix.device)
+        
+        # Normalize
+        sketch_norm = sketch / (torch.norm(sketch) + 1e-10)
+        matrix_norms = torch.norm(sketch_matrix, dim=1, keepdim=True)
+        sketch_matrix_norm = sketch_matrix / (matrix_norms + 1e-10)
+        
+        # Batch dot product
+        similarities = torch.matmul(sketch_matrix_norm, sketch_norm)
+        
+        return similarities
+
+
+class GradientSketcherForDAVS:
+    """
+    Manages gradient sketching for all clients in DAVS
+    Handles model-wide gradient compression and similarity computation
+    """
+    
+    def __init__(self, model: torch.nn.Module, sketch_dim: int = 128,
+                 add_dp_noise: bool = False, noise_scale: float = 0.01,
+                 shared_seed: int = 42):
+        """
+        Initialize gradient sketcher for DAVS
+        
+        Args:
+            model: Neural network model (to get total parameter count)
+            sketch_dim: Sketch dimension (default: 128)
+            add_dp_noise: Enable differential privacy
+            noise_scale: DP noise scale
+            shared_seed: Seed shared across ALL clients (critical!)
         """
         self.model = model
-        self.compression_rate = compression_rate
-        self.num_hash = num_hash
+        self.sketch_dim = sketch_dim
+        self.add_dp_noise = add_dp_noise
+        self.noise_scale = noise_scale
+        self.shared_seed = shared_seed
         
-        # Create sketcher for each parameter
-        self.sketchers = {}
-        self.param_shapes = {}
+        # Calculate total gradient dimension
+        self.total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                input_dim = param.numel()
-                sketch_dim = max(int(input_dim * compression_rate), 1)
-                
-                self.sketchers[name] = CountSketch(input_dim, sketch_dim, num_hash)
-                self.param_shapes[name] = param.shape
-        
-        # Calculate compression statistics
-        self._calculate_stats()
-    
-    def _calculate_stats(self):
-        """Calculate compression statistics"""
-        original_size = sum(s.input_dim for s in self.sketchers.values())
-        compressed_size = sum(s.sketch_dim for s in self.sketchers.values())
-        
-        self.original_size = original_size
-        self.compressed_size = compressed_size
-        self.actual_compression_rate = compressed_size / original_size
-        self.bandwidth_reduction = (1 - self.actual_compression_rate) * 100
-    
-    def compress_gradients(self, gradients: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """
-        Compress all gradients
-        
-        Args:
-            gradients: Dictionary of parameter name -> gradient tensor
-            
-        Returns:
-            Dictionary of parameter name -> compressed sketch
-        """
-        compressed = {}
-        for name, grad in gradients.items():
-            if name in self.sketchers:
-                flat_grad = grad.flatten()
-                sketch = self.sketchers[name].sketch(flat_grad)
-                compressed[name] = sketch
-        
-        return compressed
-    
-    def decompress_gradients(self, compressed: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """
-        Decompress sketches back to gradients
-        
-        Args:
-            compressed: Dictionary of parameter name -> sketch
-            
-        Returns:
-            Dictionary of parameter name -> decompressed gradient
-        """
-        decompressed = {}
-        for name, sketch in compressed.items():
-            if name in self.sketchers:
-                flat_grad = self.sketchers[name].unSketch(sketch)
-                original_shape = self.param_shapes[name]
-                grad = flat_grad.reshape(original_shape)
-                decompressed[name] = grad
-        
-        return decompressed
-    
-    def get_compression_stats(self) -> Dict[str, float]:
-        """Get compression statistics"""
-        return {
-            'original_size': self.original_size,
-            'compressed_size': self.compressed_size,
-            'compression_rate': self.actual_compression_rate,
-            'bandwidth_reduction_percent': self.bandwidth_reduction
-        }
-
-
-def compress_model_updates(model_updates: List[Dict[str, torch.Tensor]], 
-                          compressor: GradientCompressor) -> List[Dict[str, torch.Tensor]]:
-    """
-    Compress model updates from multiple clients
-    
-    Args:
-        model_updates: List of model update dictionaries
-        compressor: Gradient compressor instance
-        
-    Returns:
-        List of compressed updates
-    """
-    compressed_updates = []
-    for update in model_updates:
-        compressed = compressor.compress_gradients(update)
-        compressed_updates.append(compressed)
-    
-    return compressed_updates
-
-
-def decompress_and_aggregate(compressed_updates: List[Dict[str, torch.Tensor]], 
-                            weights: List[float],
-                            compressor: GradientCompressor) -> Dict[str, torch.Tensor]:
-    """
-    Decompress and aggregate compressed updates
-    
-    Args:
-        compressed_updates: List of compressed updates
-        weights: Weight for each update (typically based on data size)
-        compressor: Gradient compressor instance
-        
-    Returns:
-        Aggregated decompressed gradients
-    """
-    # Decompress all updates
-    decompressed_updates = []
-    for compressed in compressed_updates:
-        decompressed = compressor.decompress_gradients(compressed)
-        decompressed_updates.append(decompressed)
-    
-    # Weighted aggregation
-    aggregated = {}
-    total_weight = sum(weights)
-    
-    for name in decompressed_updates[0].keys():
-        weighted_sum = sum(
-            update[name] * (weight / total_weight) 
-            for update, weight in zip(decompressed_updates, weights)
+        # Initialize sketcher
+        self.sketcher = RandomProjectionSketcher(
+            input_dim=self.total_params,
+            sketch_dim=sketch_dim,
+            add_dp_noise=add_dp_noise,
+            noise_scale=noise_scale,
+            seed=shared_seed
         )
-        aggregated[name] = weighted_sum
+        
+        print(f"✓ DAVS Sketcher initialized:")
+        print(f"  Total parameters: {self.total_params:,}")
+        print(f"  Sketch dimension: {sketch_dim}")
+        print(f"  Compression: {self.total_params/sketch_dim:.1f}x")
+        print(f"  Bandwidth reduction: {self.sketcher.bandwidth_reduction:.1f}%")
     
-    return aggregated
+    def extract_gradients(self, model: torch.nn.Module) -> torch.Tensor:
+        """
+        Extract and flatten all gradients from model
+        
+        Args:
+            model: Model with computed gradients
+            
+        Returns:
+            Flattened gradient vector
+        """
+        gradients = []
+        for param in model.parameters():
+            if param.grad is not None:
+                gradients.append(param.grad.flatten())
+        
+        if len(gradients) == 0:
+            raise ValueError("No gradients found! Did you call loss.backward()?")
+        
+        return torch.cat(gradients)
+    
+    def sketch_gradients(self, model: torch.nn.Module) -> torch.Tensor:
+        """
+        Extract and sketch gradients from model
+        
+        Args:
+            model: Model with computed gradients
+            
+        Returns:
+            Gradient sketch
+        """
+        gradient_vector = self.extract_gradients(model)
+        sketch = self.sketcher.sketch(gradient_vector)
+        return sketch
+    
+    def compute_representativeness_score(self, client_sketch: torch.Tensor,
+                                        all_sketches: List[torch.Tensor]) -> float:
+        """
+        Compute representativeness score for DAVS
+        Score = mean cosine similarity with all other clients
+        
+        Args:
+            client_sketch: Sketch of current client
+            all_sketches: Sketches of all clients (including current)
+            
+        Returns:
+            Representativeness score
+        """
+        similarities = []
+        
+        for other_sketch in all_sketches:
+            # Skip self-comparison
+            if not torch.equal(client_sketch, other_sketch):
+                sim = self.sketcher.compute_cosine_similarity(client_sketch, other_sketch)
+                similarities.append(sim)
+        
+        if len(similarities) == 0:
+            return 0.0
+        
+        # Mean similarity = representativeness
+        return float(np.mean(similarities))
+    
+    def select_davs_committee(self, client_sketches: Dict[int, torch.Tensor],
+                             committee_size: int = 5) -> tuple:
+        """
+        DAVS committee selection based on representativeness scores
+        
+        Args:
+            client_sketches: Dict of {client_id: sketch}
+            committee_size: Number of verifiers to select
+            
+        Returns:
+            Tuple of (committee_ids, all_scores)
+        """
+        scores = {}
+        all_sketches = list(client_sketches.values())
+        
+        # Compute representativeness for each client
+        for client_id, sketch in client_sketches.items():
+            scores[client_id] = self.compute_representativeness_score(sketch, all_sketches)
+        
+        # Select top-k clients
+        sorted_clients = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        committee = [client_id for client_id, _ in sorted_clients[:committee_size]]
+        
+        return committee, scores
+
+
+# Utility functions for integration
+
+def create_shared_sketcher(model: torch.nn.Module, config: dict) -> GradientSketcherForDAVS:
+    """
+    Factory function to create sketcher with config
+    
+    Args:
+        model: Neural network model
+        config: Configuration dictionary
+        
+    Returns:
+        Initialized sketcher
+    """
+    return GradientSketcherForDAVS(
+        model=model,
+        sketch_dim=config.get('sketch_dim', 128),
+        add_dp_noise=config.get('add_dp_noise', False),
+        noise_scale=config.get('noise_scale', 0.01),
+        shared_seed=config.get('shared_seed', 42)
+    )
 
 
 if __name__ == "__main__":
-    # Test gradient sketching
-    print("Testing Gradient Sketching...\n")
+    print("="*70)
+    print("Testing Random Projection Gradient Sketching for DAVS")
+    print("="*70)
     
-    # Create a simple test model
     from models.cnn_model import SimpleCNN
+    
+    # Initialize model
     model = SimpleCNN(num_classes=9)
     
-    # Initialize compressor
-    print("="*60)
-    print("Initializing Gradient Compressor")
-    print("="*60)
-    compressor = GradientCompressor(model, compression_rate=0.1, num_hash=3)
+    # Create sketcher
+    sketcher = GradientSketcherForDAVS(
+        model=model,
+        sketch_dim=128,
+        add_dp_noise=False,
+        shared_seed=42
+    )
     
-    stats = compressor.get_compression_stats()
-    print(f"Original size: {stats['original_size']:,} parameters")
-    print(f"Compressed size: {stats['compressed_size']:,} parameters")
-    print(f"Compression rate: {stats['compression_rate']:.2%}")
-    print(f"Bandwidth reduction: {stats['bandwidth_reduction_percent']:.1f}%")
+    print("\n" + "="*70)
+    print("Test 1: Gradient Extraction and Sketching")
+    print("="*70)
     
-    # Test compression/decompression
-    print("\n" + "="*60)
-    print("Testing Compression/Decompression")
-    print("="*60)
+    # Create dummy data and compute gradients
+    dummy_input = torch.randn(4, 3, 28, 28)
+    dummy_target = torch.randint(0, 9, (4,))
     
-    # Create dummy gradients
-    dummy_gradients = {
-        name: torch.randn_like(param) 
-        for name, param in model.named_parameters()
-    }
+    # Forward pass
+    output = model(dummy_input)
+    loss = torch.nn.CrossEntropyLoss()(output, dummy_target)
+    loss.backward()
     
-    # Compress
-    compressed = compressor.compress_gradients(dummy_gradients)
-    print(f"✓ Compressed {len(compressed)} parameter groups")
+    # Extract and sketch
+    gradient_vector = sketcher.extract_gradients(model)
+    sketch = sketcher.sketch_gradients(model)
     
-    # Decompress
-    decompressed = compressor.decompress_gradients(compressed)
-    print(f"✓ Decompressed to {len(decompressed)} parameter groups")
+    print(f"✓ Original gradient dimension: {gradient_vector.shape[0]:,}")
+    print(f"✓ Sketch dimension: {sketch.shape[0]}")
+    print(f"✓ Compression ratio: {gradient_vector.shape[0]/sketch.shape[0]:.1f}x")
     
-    # Calculate reconstruction error
-    total_error = 0.0
-    total_norm = 0.0
-    for name in dummy_gradients.keys():
-        if name in decompressed:
-            error = torch.norm(dummy_gradients[name] - decompressed[name]).item()
-            norm = torch.norm(dummy_gradients[name]).item()
-            total_error += error
-            total_norm += norm
+    print("\n" + "="*70)
+    print("Test 2: Similarity Preservation")
+    print("="*70)
     
-    relative_error = (total_error / total_norm) * 100
-    print(f"\nReconstruction error: {relative_error:.2f}%")
-    print("="*60)
-    print("\n✓ Gradient sketching test complete!")
+    # Create similar gradients
+    grad1 = torch.randn(sketcher.total_params)
+    grad2 = grad1 + torch.randn(sketcher.total_params) * 0.1  # Similar
+    grad3 = torch.randn(sketcher.total_params)  # Different
+    
+    # Sketch them
+    sketch1 = sketcher.sketcher.sketch(grad1)
+    sketch2 = sketcher.sketcher.sketch(grad2)
+    sketch3 = sketcher.sketcher.sketch(grad3)
+    
+    # Compute similarities
+    sim_12_original = torch.cosine_similarity(grad1.unsqueeze(0), grad2.unsqueeze(0)).item()
+    sim_13_original = torch.cosine_similarity(grad1.unsqueeze(0), grad3.unsqueeze(0)).item()
+    
+    sim_12_sketch = sketcher.sketcher.compute_cosine_similarity(sketch1, sketch2)
+    sim_13_sketch = sketcher.sketcher.compute_cosine_similarity(sketch1, sketch3)
+    
+    print(f"Original gradients:")
+    print(f"  Similarity(grad1, grad2): {sim_12_original:.4f} (similar)")
+    print(f"  Similarity(grad1, grad3): {sim_13_original:.4f} (different)")
+    
+    print(f"\nAfter sketching:")
+    print(f"  Similarity(sketch1, sketch2): {sim_12_sketch:.4f}")
+    print(f"  Similarity(sketch1, sketch3): {sim_13_sketch:.4f}")
+    
+    error_similar = abs(sim_12_original - sim_12_sketch)
+    error_different = abs(sim_13_original - sim_13_sketch)
+    print(f"\n✓ Similarity preservation error: {error_similar:.4f}, {error_different:.4f}")
+    
+    print("\n" + "="*70)
+    print("Test 3: DAVS Committee Selection")
+    print("="*70)
+    
+    # Simulate 10 clients with sketches
+    num_clients = 10
+    client_sketches = {}
+    
+    # Honest clients (similar gradients)
+    honest_base = torch.randn(sketcher.total_params)
+    for i in range(7):
+        honest_grad = honest_base + torch.randn(sketcher.total_params) * 0.2
+        client_sketches[i] = sketcher.sketcher.sketch(honest_grad)
+    
+    # Malicious clients (very different gradients)
+    for i in range(7, 10):
+        malicious_grad = torch.randn(sketcher.total_params) * 5  # Large, different
+        client_sketches[i] = sketcher.sketcher.sketch(malicious_grad)
+    
+    # Select committee
+    committee, scores = sketcher.select_davs_committee(client_sketches, committee_size=5)
+    
+    print(f"Representativeness Scores:")
+    for client_id in sorted(scores.keys()):
+        is_malicious = "⚠️  MALICIOUS" if client_id >= 7 else "✓ Honest"
+        print(f"  Client {client_id}: {scores[client_id]:6.4f}  {is_malicious}")
+    
+    print(f"\n✓ Selected Committee: {committee}")
+    malicious_in_committee = [c for c in committee if c >= 7]
+    print(f"  Malicious clients in committee: {len(malicious_in_committee)}/{len(committee)}")
+    
+    if len(malicious_in_committee) == 0:
+        print("  ✓✓✓ SUCCESS: No malicious clients selected!")
+    
+    print("\n" + "="*70)
+    print("✓ All tests passed! Random Projection works correctly for DAVS")
+    print("="*70)

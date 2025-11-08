@@ -112,21 +112,33 @@ class FederatedClient:
         
         return num_samples, avg_loss, accuracy
     
-    def compute_gradients(self):
+    def compute_gradients(self, global_params=None):
         """
-        Compute and return gradients (for future DAVS implementation)
+        Compute and return gradients/updates relative to global parameters
+        
+        Args:
+            global_params: Dictionary of global model parameters (optional)
+                          If provided, returns the difference between local and global params
+                          If None, returns the accumulated gradients from last backward pass
         
         Returns:
-            Flattened gradient vector
+            Dictionary of gradients/updates for each parameter
         """
-        gradients = []
-        for param in self.model.parameters():
-            if param.grad is not None:
-                gradients.append(param.grad.view(-1))
-        
-        if len(gradients) > 0:
-            return torch.cat(gradients).cpu().numpy()
-        return None
+        if global_params is not None:
+            # Compute parameter updates (local_params - global_params)
+            gradients = {}
+            local_params = self.get_parameters()
+            for name, local_param in local_params.items():
+                if name in global_params:
+                    gradients[name] = local_param - global_params[name]
+            return gradients
+        else:
+            # Return accumulated gradients from last backward pass
+            gradients = {}
+            for name, param in self.model.named_parameters():
+                if param.grad is not None:
+                    gradients[name] = param.grad.clone()
+            return gradients
 
 
 def create_clients(client_datasets, model_fn, device='cpu'):

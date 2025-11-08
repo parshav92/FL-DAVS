@@ -11,60 +11,70 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_gradient_sketching():
-    """Test gradient sketching implementation"""
+    """Test gradient sketching implementation with Random Projection"""
     print("\n" + "="*70)
-    print("TEST 1: Gradient Sketching")
+    print("TEST 1: Random Projection Gradient Sketching")
     print("="*70)
     
     try:
-        from federated.gradient_sketching import GradientCompressor
+        from federated.gradient_sketching import GradientSketcherForDAVS
         from models.cnn_model import SimpleCNN
         import torch
         
         # Create model
         model = SimpleCNN(num_classes=9)
         
-        # Create compressor
-        compressor = GradientCompressor(model, compression_rate=0.1, num_hash=3)
+        # Create sketcher
+        sketcher = GradientSketcherForDAVS(
+            model=model,
+            sketch_dim=128,
+            add_dp_noise=False,
+            shared_seed=42
+        )
         
-        # Get stats
-        stats = compressor.get_compression_stats()
+        print(f"✓ Sketcher initialized")
+        print(f"  Total parameters: {sketcher.total_params:,}")
+        print(f"  Sketch dimension: {sketcher.sketch_dim}")
+        print(f"  Compression: {sketcher.total_params/sketcher.sketch_dim:.1f}x")
+        print(f"  Bandwidth reduction: {sketcher.sketcher.bandwidth_reduction:.1f}%")
         
-        print(f"✓ Compressor initialized")
-        print(f"  Original: {stats['original_size']:,} parameters")
-        print(f"  Compressed: {stats['compressed_size']:,} parameters")
-        print(f"  Compression: {stats['compression_rate']:.1%}")
-        print(f"  Bandwidth reduction: {stats['bandwidth_reduction_percent']:.1f}%")
+        # Test gradient sketching
+        # Create dummy data and compute gradients
+        dummy_input = torch.randn(4, 3, 28, 28)
+        dummy_target = torch.randint(0, 9, (4,))
         
-        # Test compression/decompression
-        dummy_gradients = {
-            name: torch.randn_like(param)
-            for name, param in model.named_parameters()
-        }
+        # Forward pass
+        output = model(dummy_input)
+        loss = torch.nn.CrossEntropyLoss()(output, dummy_target)
+        loss.backward()
         
-        compressed = compressor.compress_gradients(dummy_gradients)
-        decompressed = compressor.decompress_gradients(compressed)
+        # Extract and sketch gradients
+        sketch = sketcher.sketch_gradients(model)
         
-        print(f"✓ Compression/decompression successful")
+        print(f"✓ Gradient extraction and sketching successful")
+        print(f"  Sketch shape: {sketch.shape}")
         
-        # Calculate error
-        total_error = 0.0
-        total_norm = 0.0
-        for name in dummy_gradients.keys():
-            if name in decompressed:
-                error = torch.norm(dummy_gradients[name] - decompressed[name]).item()
-                norm = torch.norm(dummy_gradients[name]).item()
-                total_error += error
-                total_norm += norm
+        # Test similarity preservation
+        grad1 = torch.randn(sketcher.total_params)
+        grad2 = grad1 + torch.randn(sketcher.total_params) * 0.1  # Similar
+        grad3 = torch.randn(sketcher.total_params)  # Different
         
-        relative_error = (total_error / total_norm) * 100
-        print(f"✓ Reconstruction error: {relative_error:.2f}%")
+        sketch1 = sketcher.sketcher.sketch(grad1)
+        sketch2 = sketcher.sketcher.sketch(grad2)
+        sketch3 = sketcher.sketcher.sketch(grad3)
         
-        if relative_error < 10:
-            print("✅ PASS: Gradient sketching works correctly")
+        sim_12 = sketcher.sketcher.compute_cosine_similarity(sketch1, sketch2)
+        sim_13 = sketcher.sketcher.compute_cosine_similarity(sketch1, sketch3)
+        
+        print(f"✓ Similarity preservation test:")
+        print(f"  Similar gradients: {sim_12:.4f}")
+        print(f"  Different gradients: {sim_13:.4f}")
+        
+        if sim_12 > sim_13:
+            print("✅ PASS: Random Projection preserves gradient similarity")
             return True
         else:
-            print("❌ FAIL: Reconstruction error too high")
+            print("❌ FAIL: Similarity not preserved correctly")
             return False
             
     except Exception as e:
@@ -75,80 +85,58 @@ def test_gradient_sketching():
 
 
 def test_davs_selection():
-    """Test DAVS committee selection"""
+    """Test DAVS committee selection with gradient sketches"""
     print("\n" + "="*70)
-    print("TEST 2: DAVS Committee Selection")
+    print("TEST 2: DAVS Committee Selection (Amnesic)")
     print("="*70)
     
     try:
-        from federated.davs_selection import DAVSSelector, DataQualityMetrics
-        from models.cnn_model import SimpleCNN
+        from federated.davs_selection import DAVSSelector
         import torch
         import numpy as np
         
-        # Create model
-        model = SimpleCNN(num_classes=9)
-        
         # Initialize selector
         num_clients = 10
-        selector = DAVSSelector(num_clients=num_clients, committee_size=5)
+        sketch_dim = 128
+        selector = DAVSSelector(committee_size=5)
         
         print(f"✓ DAVS Selector initialized")
         print(f"  Total clients: {num_clients}")
         print(f"  Committee size: {selector.committee_size}")
+        print(f"  Algorithm: Amnesic (no history)")
         
-        # Create dummy client data
-        client_gradients = []
-        data_sizes = []
-        loss_improvements = []
-        class_distributions = {}
+        # Create gradient sketches (DAVS works on sketches, not full gradients)
+        client_sketches = {}
         
-        for i in range(num_clients):
-            dummy_grad = {
-                name: torch.randn_like(param)
-                for name, param in model.named_parameters()
-            }
-            client_gradients.append(dummy_grad)
-            data_sizes.append(int(5000 + 5000 * np.random.rand()))
-            loss_improvements.append(0.1 * np.random.rand())
-            class_distributions[i] = np.random.dirichlet(np.ones(9)) * 1000
+        # Honest clients (similar sketches)
+        honest_base = torch.randn(sketch_dim)
+        for i in range(7):
+            honest_sketch = honest_base + torch.randn(sketch_dim) * 0.2
+            client_sketches[i] = honest_sketch
         
-        print(f"✓ Created dummy data for {num_clients} clients")
+        # Malicious clients (very different sketches)  
+        for i in range(7, num_clients):
+            malicious_sketch = torch.randn(sketch_dim) * 5.0
+            client_sketches[i] = malicious_sketch
         
-        # Calculate scores
-        scores = selector.calculate_client_scores(
-            client_gradients, data_sizes, loss_improvements, class_distributions
-        )
+        print(f"✓ Created {num_clients} gradient sketches ({sketch_dim}-dim)")
         
-        print(f"✓ Calculated scores for all clients")
-        
-        # Select committee
-        committee = selector.select_committee(
-            client_gradients, data_sizes, loss_improvements, class_distributions
-        )
+        # Select committee using DAVS (gradient similarity only)
+        committee, scores = selector.select_committee(client_sketches)
         
         print(f"✓ Selected committee: {committee}")
         print(f"  Committee size: {len(committee)}")
         
-        # Test Byzantine detection
-        byzantine_grad = {
-            name: torch.randn_like(param) * 10.0
-            for name, param in model.named_parameters()
-        }
-        client_gradients.append(byzantine_grad)
+        # Check Byzantine resilience
+        malicious_in_committee = [c for c in committee if c >= 7]
+        print(f"✓ Malicious clients in committee: {len(malicious_in_committee)}/{len(committee)}")
         
-        byzantine = selector.detect_byzantine(client_gradients, threshold=2.5)
-        
-        if byzantine:
-            print(f"✓ Byzantine detection working: {byzantine}")
-        else:
-            print(f"✓ No Byzantine clients detected (threshold may be high)")
-        
-        if len(committee) > 0 and len(committee) <= num_clients:
+        if len(committee) == 5 and len(malicious_in_committee) <= 1:
             print("✅ PASS: DAVS selection works correctly")
+            print("  (Low representativeness filtered out most malicious clients)")
             return True
         else:
-            print("❌ FAIL: Invalid committee size")
+            print("❌ FAIL: Committee selection issue")
             return False
             
     except Exception as e:
@@ -169,7 +157,7 @@ def test_integration():
         import config
         from models.cnn_model import get_model
         from data.medmnist_loader import MedMNISTDataLoader
-        from federated.gradient_sketching import GradientCompressor
+        from federated.gradient_sketching import GradientSketcherForDAVS
         from federated.davs_selection import DAVSSelector
         
         print("✓ All imports successful")

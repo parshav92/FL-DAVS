@@ -1,435 +1,201 @@
 """
 DAVS (Data-Aware Verifier Selection) - Phase 3
-Implements intelligent committee selection based on data quality and contribution
-Byzantine-resilient verifier selection for federated learning
+Correct implementation following DAVS specification:
+- Amnesic (no historical tracking)
+- Sketch-based (works on 128-dim gradient sketches)
+- Single metric: cosine similarity for representativeness
+- No separate Byzantine detection (implicit via low similarity scores)
 """
 
 import torch
 import numpy as np
-from typing import List, Dict, Tuple
-from collections import defaultdict
-
-
-class DataQualityMetrics:
-    """
-    Calculates data quality metrics for client selection
-    """
-    
-    @staticmethod
-    def calculate_gradient_norm(gradients: Dict[str, torch.Tensor]) -> float:
-        """Calculate L2 norm of gradients"""
-        total_norm = 0.0
-        for grad in gradients.values():
-            total_norm += torch.norm(grad).item() ** 2
-        return np.sqrt(total_norm)
-    
-    @staticmethod
-    def calculate_gradient_variance(client_gradients: List[Dict[str, torch.Tensor]]) -> Dict[int, float]:
-        """
-        Calculate variance of each client's gradients from mean
-        Lower variance = more consistent with others
-        """
-        if not client_gradients:
-            return {}
-        
-        # Calculate mean gradient
-        mean_gradients = {}
-        for param_name in client_gradients[0].keys():
-            param_grads = [cg[param_name] for cg in client_gradients]
-            mean_gradients[param_name] = torch.stack(param_grads).mean(dim=0)
-        
-        # Calculate variance for each client
-        variances = {}
-        for client_id, client_grad in enumerate(client_gradients):
-            variance = 0.0
-            for param_name in client_grad.keys():
-                diff = client_grad[param_name] - mean_gradients[param_name]
-                variance += torch.norm(diff).item() ** 2
-            variances[client_id] = variance
-        
-        return variances
-    
-    @staticmethod
-    def calculate_loss_improvement(prev_loss: float, curr_loss: float) -> float:
-        """Calculate improvement in loss"""
-        if prev_loss == 0:
-            return 0.0
-        return (prev_loss - curr_loss) / prev_loss
-    
-    @staticmethod
-    def calculate_data_diversity(data_sizes: Dict[int, int], 
-                                class_distributions: Dict[int, np.ndarray]) -> Dict[int, float]:
-        """
-        Calculate data diversity score for each client
-        Higher diversity = better representation
-        """
-        diversity_scores = {}
-        
-        for client_id, class_dist in class_distributions.items():
-            # Shannon entropy as diversity measure
-            probabilities = class_dist / (class_dist.sum() + 1e-10)
-            entropy = -np.sum(probabilities * np.log(probabilities + 1e-10))
-            
-            # Normalize by data size (larger datasets with diversity are better)
-            data_size = data_sizes.get(client_id, 1)
-            diversity_scores[client_id] = entropy * np.log(data_size + 1)
-        
-        return diversity_scores
+from typing import Dict, Tuple, List
 
 
 class DAVSSelector:
     """
-    Data-Aware Verifier Selection
-    Selects optimal committee of verifiers based on multiple criteria
+    Data-Aware Verifier Selection (DAVS)
+    
+    CRITICAL: DAVS is AMNESIC - no historical tracking whatsoever.
+    Selection based ONLY on real-time gradient sketch similarity.
+    
+    Reference: "DAVS operates on the principle that a node's suitability 
+    for consensus in the current round should be judged solely on the 
+    mathematical properties of its contribution to that round."
     """
     
-    def __init__(self, num_clients: int, committee_size: int = None, 
-                 selection_strategy: str = 'weighted'):
+    def __init__(self, committee_size: int = 5):
         """
         Initialize DAVS selector
         
         Args:
-            num_clients: Total number of clients
-            committee_size: Size of verification committee (default: sqrt(num_clients))
-            selection_strategy: 'weighted', 'top_k', or 'probabilistic'
+            committee_size: Size of verification committee
+        
+        Note: NO historical tracking, NO reputation system
         """
-        self.num_clients = num_clients
-        self.committee_size = committee_size or max(int(np.sqrt(num_clients)), 3)
-        self.selection_strategy = selection_strategy
-        
-        # Track client performance over time
-        self.client_history = defaultdict(lambda: {
-            'contributions': 0,
-            'total_loss_improvement': 0.0,
-            'avg_gradient_norm': 0.0,
-            'reliability_score': 1.0,
-            'data_quality_score': 1.0
-        })
-        
-        # Byzantine detection
-        self.suspected_byzantine = set()
+        self.committee_size = committee_size
     
-    def calculate_client_scores(self, 
-                                client_gradients: List[Dict[str, torch.Tensor]],
-                                data_sizes: List[int],
-                                loss_improvements: List[float],
-                                class_distributions: Dict[int, np.ndarray] = None) -> Dict[int, float]:
+    @staticmethod
+    def compute_cosine_similarity(sketch1: torch.Tensor, sketch2: torch.Tensor) -> float:
         """
-        Calculate comprehensive scores for each client
+        Compute cosine similarity between two gradient sketches
         
         Args:
-            client_gradients: List of gradient dictionaries from clients
-            data_sizes: List of data sizes for each client
-            loss_improvements: List of loss improvements for each client
-            class_distributions: Optional class distribution per client
-            
+            sketch1: First gradient sketch (128-dim)
+            sketch2: Second gradient sketch (128-dim)
+        
         Returns:
-            Dictionary mapping client_id to overall score
+            Cosine similarity in [-1, 1]
         """
-        num_active_clients = len(client_gradients)
+        # Ensure same device
+        if sketch1.device != sketch2.device:
+            sketch2 = sketch2.to(sketch1.device)
         
-        # 1. Gradient-based metrics
-        gradient_norms = [
-            DataQualityMetrics.calculate_gradient_norm(grad) 
-            for grad in client_gradients
-        ]
-        gradient_variances = DataQualityMetrics.calculate_gradient_variance(client_gradients)
+        # Compute cosine similarity
+        dot_product = torch.dot(sketch1, sketch2)
+        norm1 = torch.norm(sketch1)
+        norm2 = torch.norm(sketch2)
         
-        # 2. Data quality metrics
-        data_sizes_dict = {i: size for i, size in enumerate(data_sizes)}
-        if class_distributions is not None:
-            diversity_scores = DataQualityMetrics.calculate_data_diversity(
-                data_sizes_dict, class_distributions
-            )
-        else:
-            diversity_scores = {i: 1.0 for i in range(num_active_clients)}
+        similarity = dot_product / (norm1 * norm2 + 1e-10)
+        return similarity.item()
+    
+    def compute_representativeness_score(self, 
+                                         client_sketch: torch.Tensor,
+                                         all_sketches: List[torch.Tensor]) -> float:
+        """
+        Compute Representativeness Score as defined in DAVS specification.
         
-        # 3. Calculate composite scores
-        scores = {}
-        for client_id in range(num_active_clients):
-            # Skip suspected Byzantine nodes
-            if client_id in self.suspected_byzantine:
-                scores[client_id] = 0.0
-                continue
-            
-            # Normalize metrics
-            norm_grad = gradient_norms[client_id] / (max(gradient_norms) + 1e-10)
-            norm_var = 1.0 - (gradient_variances[client_id] / (max(gradient_variances.values()) + 1e-10))
-            norm_loss = max(0.0, loss_improvements[client_id])
-            norm_diversity = diversity_scores.get(client_id, 0.5)
-            norm_data_size = data_sizes[client_id] / (max(data_sizes) + 1)
-            
-            # Weighted combination (tunable weights)
-            score = (
-                0.25 * norm_grad +           # Gradient magnitude
-                0.25 * norm_var +            # Consistency with others
-                0.20 * norm_loss +           # Loss improvement
-                0.15 * norm_diversity +      # Data diversity
-                0.15 * norm_data_size        # Data volume
-            )
-            
-            # Apply historical reliability
-            history = self.client_history[client_id]
-            reliability_factor = history['reliability_score']
-            score *= reliability_factor
-            
-            scores[client_id] = score
+        "The Representativeness Score is defined as the mean cosine similarity 
+        between a client's sketch and the sketches of all other participating clients."
         
-        return scores
+        Args:
+            client_sketch: Gradient sketch of target client (128-dim)
+            all_sketches: List of all gradient sketches (128-dim each)
+        
+        Returns:
+            Representativeness score (mean cosine similarity)
+        """
+        similarities = []
+        
+        for other_sketch in all_sketches:
+            # Skip self-comparison
+            if not torch.equal(client_sketch, other_sketch):
+                sim = self.compute_cosine_similarity(client_sketch, other_sketch)
+                similarities.append(sim)
+        
+        if len(similarities) == 0:
+            return 0.0
+        
+        # Mean similarity = representativeness
+        return float(np.mean(similarities))
     
     def select_committee(self, 
-                        client_gradients: List[Dict[str, torch.Tensor]],
-                        data_sizes: List[int],
-                        loss_improvements: List[float],
-                        class_distributions: Dict[int, np.ndarray] = None) -> List[int]:
+                        client_sketches: Dict[int, torch.Tensor]) -> Tuple[List[int], Dict[int, float]]:
         """
-        Select verification committee using DAVS
+        Select verification committee using DAVS.
+        
+        CRITICAL: This is the ONLY method that matters in DAVS.
+        - Input: gradient sketches (128-dim) ONLY
+        - Output: top-k clients by representativeness score
+        - NO historical data, NO heuristics, NO multi-factor scoring
         
         Args:
-            client_gradients: Gradients from all clients
-            data_sizes: Data sizes for each client
-            loss_improvements: Loss improvements for each client
-            class_distributions: Optional class distributions
-            
+            client_sketches: Dictionary mapping client_id to gradient sketch (128-dim)
+        
         Returns:
-            List of selected client IDs
+            Tuple of (committee_ids, representativeness_scores)
         """
-        # Calculate scores
-        scores = self.calculate_client_scores(
-            client_gradients, data_sizes, loss_improvements, class_distributions
-        )
+        scores = {}
+        all_sketches = list(client_sketches.values())
         
-        # Select based on strategy
-        if self.selection_strategy == 'top_k':
-            # Select top K clients
-            selected = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-            committee = [client_id for client_id, _ in selected[:self.committee_size]]
+        # Compute representativeness for each client
+        for client_id, sketch in client_sketches.items():
+            scores[client_id] = self.compute_representativeness_score(sketch, all_sketches)
         
-        elif self.selection_strategy == 'probabilistic':
-            # Probabilistic selection based on scores
-            total_score = sum(scores.values())
-            if total_score == 0:
-                # Fallback to random selection
-                committee = np.random.choice(
-                    list(scores.keys()), 
-                    size=min(self.committee_size, len(scores)), 
-                    replace=False
-                ).tolist()
-            else:
-                probabilities = np.array([scores[i] for i in range(len(scores))])
-                probabilities = probabilities / probabilities.sum()
-                committee = np.random.choice(
-                    len(scores), 
-                    size=min(self.committee_size, len(scores)), 
-                    replace=False,
-                    p=probabilities
-                ).tolist()
-        
-        else:  # 'weighted' (default)
-            # Weighted selection ensuring diversity
-            committee = self._weighted_diverse_selection(scores, data_sizes)
-        
-        return committee
-    
-    def _weighted_diverse_selection(self, scores: Dict[int, float], 
-                                   data_sizes: List[int]) -> List[int]:
-        """Select committee with both high scores and diversity"""
-        # Sort by score
+        # Select top-k by representativeness (highest similarity = most representative)
         sorted_clients = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        committee = [client_id for client_id, _ in sorted_clients[:self.committee_size]]
         
-        committee = []
-        for client_id, score in sorted_clients:
-            if len(committee) >= self.committee_size:
-                break
-            
-            # Add if score is positive and not Byzantine
-            if score > 0 and client_id not in self.suspected_byzantine:
-                committee.append(client_id)
-        
-        # If committee too small, add random non-Byzantine clients
-        if len(committee) < self.committee_size:
-            remaining = [
-                i for i in range(len(scores)) 
-                if i not in committee and i not in self.suspected_byzantine
-            ]
-            needed = min(self.committee_size - len(committee), len(remaining))
-            committee.extend(np.random.choice(remaining, size=needed, replace=False).tolist())
-        
-        return committee
-    
-    def update_client_history(self, client_id: int, 
-                             gradient_norm: float,
-                             loss_improvement: float,
-                             was_selected: bool):
-        """Update historical performance of a client"""
-        history = self.client_history[client_id]
-        
-        # Update contribution count
-        if was_selected:
-            history['contributions'] += 1
-        
-        # Update moving averages
-        alpha = 0.7  # Smoothing factor
-        history['avg_gradient_norm'] = (
-            alpha * history['avg_gradient_norm'] + (1 - alpha) * gradient_norm
-        )
-        history['total_loss_improvement'] += loss_improvement
-        
-        # Update reliability score (decays if not selected or poor performance)
-        if was_selected and loss_improvement > 0:
-            history['reliability_score'] = min(1.0, history['reliability_score'] + 0.1)
-        else:
-            history['reliability_score'] = max(0.1, history['reliability_score'] - 0.05)
-    
-    def detect_byzantine(self, 
-                        client_gradients: List[Dict[str, torch.Tensor]],
-                        threshold: float = 3.0) -> List[int]:
-        """
-        Detect potential Byzantine (malicious) clients
-        Using gradient variance and statistical outlier detection
-        
-        Args:
-            client_gradients: Gradients from all clients
-            threshold: Standard deviations from mean to flag as Byzantine
-            
-        Returns:
-            List of suspected Byzantine client IDs
-        """
-        if len(client_gradients) < 3:
-            return []
-        
-        # Calculate gradient norms
-        norms = [
-            DataQualityMetrics.calculate_gradient_norm(grad) 
-            for grad in client_gradients
-        ]
-        
-        # Statistical outlier detection
-        mean_norm = np.mean(norms)
-        std_norm = np.std(norms)
-        
-        byzantine_clients = []
-        for client_id, norm in enumerate(norms):
-            # Flag if too far from mean
-            if abs(norm - mean_norm) > threshold * std_norm:
-                byzantine_clients.append(client_id)
-                self.suspected_byzantine.add(client_id)
-        
-        return byzantine_clients
-    
-    def get_committee_stats(self, committee: List[int], 
-                           scores: Dict[int, float]) -> Dict[str, float]:
-        """Get statistics about selected committee"""
-        committee_scores = [scores[i] for i in committee]
-        
-        return {
-            'size': len(committee),
-            'avg_score': np.mean(committee_scores),
-            'min_score': np.min(committee_scores),
-            'max_score': np.max(committee_scores),
-            'score_std': np.std(committee_scores)
-        }
+        return committee, scores
 
 
 if __name__ == "__main__":
-    # Test DAVS committee selection
-    print("Testing DAVS Committee Selection...\n")
+    # Test DAVS committee selection with gradient sketches
+    print("="*70)
+    print("Testing DAVS Committee Selection (Correct Implementation)")
+    print("="*70)
     
-    from models.cnn_model import SimpleCNN
-    
-    # Simulate 10 clients
+    # Simulate 10 clients with gradient sketches
     num_clients = 10
-    model = SimpleCNN(num_classes=9)
+    sketch_dim = 128
     
-    print("="*60)
+    print("\n" + "="*70)
     print("Initializing DAVS Selector")
-    print("="*60)
-    selector = DAVSSelector(num_clients=num_clients, committee_size=5, 
-                           selection_strategy='weighted')
-    print(f"Total clients: {num_clients}")
-    print(f"Committee size: {selector.committee_size}")
-    print(f"Selection strategy: {selector.selection_strategy}")
+    print("="*70)
+    selector = DAVSSelector(committee_size=5)
+    print(f"✓ Committee size: {selector.committee_size}")
+    print(f"✓ Algorithm: Amnesic (no historical tracking)")
+    print(f"✓ Metric: Cosine similarity only")
     
-    # Create dummy client data
-    print("\n" + "="*60)
-    print("Simulating Client Gradients and Metrics")
-    print("="*60)
+    # Create gradient sketches for clients
+    print("\n" + "="*70)
+    print("Simulating Gradient Sketches")
+    print("="*70)
     
-    client_gradients = []
-    data_sizes = []
-    loss_improvements = []
-    class_distributions = {}
+    client_sketches = {}
     
-    for i in range(num_clients):
-        # Create dummy gradients
-        dummy_grad = {
-            name: torch.randn_like(param) * (1.0 + 0.1 * np.random.randn())
-            for name, param in model.named_parameters()
-        }
-        client_gradients.append(dummy_grad)
-        
-        # Random data sizes (mimicking non-IID)
-        data_sizes.append(int(5000 + 5000 * np.random.rand()))
-        
-        # Random loss improvements
-        loss_improvements.append(0.1 * np.random.rand())
-        
-        # Random class distributions
-        class_dist = np.random.dirichlet(np.ones(9) * 0.5)
-        class_distributions[i] = class_dist * 1000
+    # Honest clients (similar sketches)
+    honest_base = torch.randn(sketch_dim)
+    for i in range(7):
+        # Add small perturbations to base
+        honest_sketch = honest_base + torch.randn(sketch_dim) * 0.2
+        client_sketches[i] = honest_sketch
     
-    print(f"✓ Created gradients for {num_clients} clients")
-    print(f"✓ Data sizes range: {min(data_sizes)} - {max(data_sizes)}")
-    print(f"✓ Loss improvements range: {min(loss_improvements):.3f} - {max(loss_improvements):.3f}")
+    # Malicious clients (very different sketches)
+    for i in range(7, 10):
+        malicious_sketch = torch.randn(sketch_dim) * 5.0  # Large, different
+        client_sketches[i] = malicious_sketch
     
-    # Calculate scores
-    print("\n" + "="*60)
-    print("Calculating Client Scores")
-    print("="*60)
-    
-    scores = selector.calculate_client_scores(
-        client_gradients, data_sizes, loss_improvements, class_distributions
-    )
-    
-    for client_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
-        print(f"Client {client_id}: Score = {score:.4f}, Data size = {data_sizes[client_id]}")
+    print(f"✓ Created {num_clients} gradient sketches ({sketch_dim}-dim)")
+    print(f"  Honest clients: 0-6 (similar gradients)")
+    print(f"  Malicious clients: 7-9 (different gradients)")
     
     # Select committee
-    print("\n" + "="*60)
-    print("Selecting Verification Committee")
-    print("="*60)
+    print("\n" + "="*70)
+    print("Computing Representativeness Scores")
+    print("="*70)
     
-    committee = selector.select_committee(
-        client_gradients, data_sizes, loss_improvements, class_distributions
-    )
+    committee, scores = selector.select_committee(client_sketches)
+    
+    print("\nRepresentativeness Scores (mean cosine similarity):")
+    for client_id in sorted(scores.keys()):
+        is_malicious = "⚠️  MALICIOUS" if client_id >= 7 else "✓ Honest"
+        in_committee = "✓ SELECTED" if client_id in committee else ""
+        print(f"  Client {client_id}: {scores[client_id]:6.4f}  {is_malicious}  {in_committee}")
+    
+    # Results
+    print("\n" + "="*70)
+    print("Committee Selection Results")
+    print("="*70)
     
     print(f"✓ Selected committee: {committee}")
     
-    stats = selector.get_committee_stats(committee, scores)
-    print(f"\nCommittee Statistics:")
-    print(f"  Size: {stats['size']}")
-    print(f"  Average score: {stats['avg_score']:.4f}")
-    print(f"  Score range: [{stats['min_score']:.4f}, {stats['max_score']:.4f}]")
-    print(f"  Score std dev: {stats['score_std']:.4f}")
+    malicious_in_committee = [c for c in committee if c >= 7]
+    print(f"\nByzantine Resilience:")
+    print(f"  Malicious clients in committee: {len(malicious_in_committee)}/{len(committee)}")
     
-    # Test Byzantine detection
-    print("\n" + "="*60)
-    print("Testing Byzantine Detection")
-    print("="*60)
-    
-    # Add a Byzantine client (extreme gradient)
-    byzantine_grad = {
-        name: torch.randn_like(param) * 10.0  # 10x larger gradients
-        for name, param in model.named_parameters()
-    }
-    client_gradients.append(byzantine_grad)
-    
-    byzantine = selector.detect_byzantine(client_gradients, threshold=2.5)
-    if byzantine:
-        print(f"⚠️  Detected Byzantine clients: {byzantine}")
+    if len(malicious_in_committee) == 0:
+        print("  ✓✓✓ SUCCESS: All malicious clients filtered out!")
+        print("  (Low representativeness scores excluded them automatically)")
     else:
-        print("✓ No Byzantine clients detected")
+        print(f"  ⚠️  Some malicious clients selected: {malicious_in_committee}")
     
-    print("\n" + "="*60)
-    print("✓ DAVS committee selection test complete!")
-    print("="*60)
+    committee_scores = [scores[i] for i in committee]
+    print(f"\nCommittee Statistics:")
+    print(f"  Average representativeness: {np.mean(committee_scores):.4f}")
+    print(f"  Min representativeness: {np.min(committee_scores):.4f}")
+    print(f"  Max representativeness: {np.max(committee_scores):.4f}")
+    
+    print("\n" + "="*70)
+    print("✓ DAVS test complete - Correct amnesic implementation!")
+    print("="*70)

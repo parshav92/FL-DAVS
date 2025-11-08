@@ -28,7 +28,7 @@ SETUP_COMPLETE.md
 STATUS.txt
 implementation.md
 *.md.backup
-
+*.md
 # IDE
 .vscode/
 .idea/

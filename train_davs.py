@@ -16,8 +16,8 @@ from models.cnn_model import get_model
 from data.medmnist_loader import MedMNISTDataLoader, create_client_loaders
 from federated.client import create_clients
 from federated.server import FederatedServer
-from federated.gradient_sketching import GradientCompressor
-from federated.davs_selection import DAVSSelector, DataQualityMetrics
+from federated.gradient_sketching import GradientSketcherForDAVS
+from federated.davs_selection import DAVSSelector
 from utils.metrics import MetricsLogger, plot_client_contributions
 
 
@@ -51,8 +51,8 @@ def main():
     setup_directories()
     
     # Configuration
-    USE_GRADIENT_SKETCHING = True
-    COMPRESSION_RATE = 0.1  # 10x compression
+    USE_GRADIENT_SKETCHING = True  # Use Random Projection for DAVS
+    SKETCH_DIM = 128  # Sketch dimension for random projection
     USE_DAVS = True
     COMMITTEE_SIZE = max(int(NUM_CLIENTS * 0.7), 5)  # 70% of clients
     
@@ -71,7 +71,7 @@ def main():
         'device': DEVICE,
         'model': 'SimpleCNN',
         'gradient_sketching': USE_GRADIENT_SKETCHING,
-        'compression_rate': COMPRESSION_RATE if USE_GRADIENT_SKETCHING else 1.0,
+        'sketch_dim': SKETCH_DIM if USE_GRADIENT_SKETCHING else None,
         'davs_selection': USE_DAVS,
         'committee_size': COMMITTEE_SIZE if USE_DAVS else NUM_CLIENTS
     }
@@ -123,31 +123,26 @@ def main():
     print(f"✓ Created {len(clients)} federated clients")
     print(f"✓ Initialized global model ({num_params:,} parameters)")
     
-    # Initialize gradient compressor
+    # Initialize gradient sketcher for DAVS
+    gradient_sketcher = None
     if USE_GRADIENT_SKETCHING:
-        compressor = GradientCompressor(
-            server.global_model,
-            compression_rate=COMPRESSION_RATE,
-            num_hash=3
+        gradient_sketcher = GradientSketcherForDAVS(
+            model=server.global_model,
+            sketch_dim=SKETCH_DIM,
+            add_dp_noise=False,
+            shared_seed=42  # All clients must use same seed!
         )
-        stats = compressor.get_compression_stats()
-        print(f"\n✓ Gradient Compressor initialized")
-        print(f"  Compression rate: {stats['compression_rate']:.2%}")
-        print(f"  Bandwidth reduction: {stats['bandwidth_reduction_percent']:.1f}%")
-        print(f"  Original: {stats['original_size']:,} → Compressed: {stats['compressed_size']:,}")
-    else:
-        compressor = None
+        print(f"\n✓ Random Projection Sketcher initialized")
+        print(f"  Sketch dimension: {SKETCH_DIM}")
+        print(f"  Compression: {gradient_sketcher.total_params/SKETCH_DIM:.1f}x")
+        print(f"  Bandwidth reduction: {gradient_sketcher.sketcher.bandwidth_reduction:.1f}%")
     
     # Initialize DAVS selector
     if USE_DAVS:
-        davs_selector = DAVSSelector(
-            num_clients=NUM_CLIENTS,
-            committee_size=COMMITTEE_SIZE,
-            selection_strategy='weighted'
-        )
+        davs_selector = DAVSSelector(committee_size=COMMITTEE_SIZE)
         print(f"\n✓ DAVS Selector initialized")
-        print(f"  Committee size: {davs_selector.committee_size}/{NUM_CLIENTS} clients")
-        print(f"  Selection strategy: {davs_selector.selection_strategy}")
+        print(f"  Committee size: {davs_selector.committee_size} clients")
+        print(f"  Algorithm: Amnesic (no historical tracking)")
     else:
         davs_selector = None
     
@@ -178,12 +173,14 @@ def main():
         client_losses = []
         client_accuracies = []
         
-        for client_id, client in enumerate(clients):
+        for client_id in range(NUM_CLIENTS):
+            client = clients[client_id]
+            
             # Set global parameters
             client.set_parameters(global_params)
             
             # Local training
-            loss, acc, num_samples = client.train(epochs=LOCAL_EPOCHS, learning_rate=LEARNING_RATE)
+            num_samples, loss, acc = client.train(epochs=LOCAL_EPOCHS, learning_rate=LEARNING_RATE)
             
             # Get gradients (updates)
             gradients = client.compute_gradients(global_params)
@@ -191,69 +188,48 @@ def main():
             client_losses.append(loss)
             client_accuracies.append(acc)
         
-        # Calculate loss improvements
-        loss_improvements = [
-            DataQualityMetrics.calculate_loss_improvement(prev_loss, curr_loss)
-            for prev_loss, curr_loss in zip(prev_client_losses, client_losses)
-        ]
-        prev_client_losses = client_losses
-        
-        # DAVS Committee Selection
-        if USE_DAVS:
-            committee = davs_selector.select_committee(
-                client_gradients=client_gradients,
-                data_sizes=data_sizes,
-                loss_improvements=loss_improvements,
-                class_distributions=class_distributions
-            )
+        # DAVS Committee Selection using Random Projection
+        if USE_DAVS and gradient_sketcher:
+            # Sketch all client gradients
+            client_sketches = {}
+            for client_id, gradients in enumerate(client_gradients):
+                # Convert gradient dict to tensor for sketching
+                grad_list = [gradients[name] for name in sorted(gradients.keys())]
+                grad_tensor = torch.cat([g.flatten() for g in grad_list])
+                sketch = gradient_sketcher.sketcher.sketch(grad_tensor)
+                client_sketches[client_id] = sketch
             
-            # Detect Byzantine clients
-            byzantine = davs_selector.detect_byzantine(client_gradients, threshold=2.5)
-            if byzantine:
-                print(f"  ⚠️  Byzantine clients detected: {byzantine}")
+            # Select committee based on representativeness (DAVS way)
+            committee, representativeness_scores = davs_selector.select_committee(client_sketches)
             
             print(f"  Selected committee ({len(committee)}): {committee}")
+            print(f"  Representativeness: {[f'{representativeness_scores[i]:.3f}' for i in committee[:3]]}")
             
             # Filter to committee members
             selected_gradients = [client_gradients[i] for i in committee]
             selected_weights = [data_sizes[i] for i in committee]
         else:
-            # Use all clients
+            # Use all clients (no DAVS)
             committee = list(range(NUM_CLIENTS))
             selected_gradients = client_gradients
             selected_weights = data_sizes
         
-        # Gradient Sketching (if enabled)
-        if USE_GRADIENT_SKETCHING and compressor:
-            # Compress gradients
-            compressed_gradients = []
-            for grad in selected_gradients:
-                compressed = compressor.compress_gradients(grad)
-                compressed_gradients.append(compressed)
-            
-            # Decompress and aggregate
-            from federated.gradient_sketching import decompress_and_aggregate
-            aggregated_gradients = decompress_and_aggregate(
-                compressed_gradients,
-                selected_weights,
-                compressor
-            )
-        else:
-            # Standard aggregation without compression
-            from federated.aggregation import fedavg
-            # Convert gradients to parameters format for fedavg
-            selected_params = []
-            for grad_dict in selected_gradients:
-                params = {}
-                for name, grad in grad_dict.items():
-                    # Gradient as parameter update (subtract from current)
-                    params[name] = global_params[name] - grad * LEARNING_RATE
-                selected_params.append(params)
-            
-            aggregated_gradients = fedavg(selected_params, selected_weights)
+        # Aggregate selected gradients (standard FedAvg)
+        from federated.aggregation import fedavg
+        # Convert gradients to parameters format for fedavg
+        # compute_gradients already returns (local_params - global_params)
+        selected_params = []
+        for grad_dict in selected_gradients:
+            params = {}
+            for name, update in grad_dict.items():
+                # Apply the update: new_params = global_params + update
+                params[name] = global_params[name] + update
+            selected_params.append(params)
+        
+        aggregated_params = fedavg(selected_params, selected_weights)
         
         # Update global model
-        server.set_global_parameters(aggregated_gradients)
+        server.set_global_parameters(aggregated_params)
         
         # Calculate training metrics
         train_loss = np.average(client_losses, weights=data_sizes)
@@ -267,15 +243,6 @@ def main():
             logger.log_round(round_num, train_loss, train_acc, test_loss, test_acc)
         else:
             logger.log_round(round_num, train_loss, train_acc)
-        
-        # Update DAVS history
-        if USE_DAVS:
-            for client_id in range(NUM_CLIENTS):
-                grad_norm = DataQualityMetrics.calculate_gradient_norm(client_gradients[client_id])
-                was_selected = client_id in committee
-                davs_selector.update_client_history(
-                    client_id, grad_norm, loss_improvements[client_id], was_selected
-                )
     
     # Final evaluation
     print(f"\n{'='*70}")
@@ -295,36 +262,19 @@ def main():
     logger.plot_training_curves()
     logger.save_summary(config)
     
-    # Save DAVS statistics
-    if USE_DAVS:
-        davs_stats_path = os.path.join(logger.exp_dir, 'davs_stats.txt')
-        with open(davs_stats_path, 'w') as f:
-            f.write("DAVS Committee Selection Statistics\n")
-            f.write("="*60 + "\n\n")
-            f.write(f"Committee Size: {COMMITTEE_SIZE}/{NUM_CLIENTS}\n")
-            f.write(f"Selection Strategy: {davs_selector.selection_strategy}\n")
-            f.write(f"Byzantine Clients Detected: {len(davs_selector.suspected_byzantine)}\n")
-            if davs_selector.suspected_byzantine:
-                f.write(f"Byzantine IDs: {list(davs_selector.suspected_byzantine)}\n")
-            f.write("\nClient Contribution History:\n")
-            f.write("-"*60 + "\n")
-            for client_id in range(NUM_CLIENTS):
-                history = davs_selector.client_history[client_id]
-                f.write(f"Client {client_id}:\n")
-                f.write(f"  Contributions: {history['contributions']}\n")
-                f.write(f"  Reliability Score: {history['reliability_score']:.3f}\n")
-                f.write(f"  Avg Gradient Norm: {history['avg_gradient_norm']:.4f}\n\n")
-        print(f"✓ DAVS statistics saved to {davs_stats_path}")
-    
-    # Summary
+    # Summary (no DAVS statistics since it's amnesic)
     print(f"\n{'='*70}")
     print("Training Complete!")
     print(f"{'='*70}")
     print(f"Final Results:")
     print(f"  Test Loss: {final_test_loss:.4f}")
     print(f"  Test Accuracy: {final_test_acc:.2f}%")
-    if USE_GRADIENT_SKETCHING:
-        print(f"  Bandwidth Reduction: {stats['bandwidth_reduction_percent']:.1f}%")
+    if USE_GRADIENT_SKETCHING and gradient_sketcher:
+        bandwidth_reduction = gradient_sketcher.sketcher.bandwidth_reduction
+        print(f"  Bandwidth Reduction: {bandwidth_reduction:.1f}%")
+    if USE_DAVS:
+        print(f"  Committee Size: {COMMITTEE_SIZE}/{NUM_CLIENTS} clients")
+        print(f"  Selection: Amnesic (gradient similarity only)")
     print(f"\nAll results saved to: {logger.exp_dir}")
     print(f"{'='*70}\n")
 
