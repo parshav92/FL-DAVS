@@ -1,0 +1,114 @@
+@startuml
+title MedBlockDFL System – Use Case Diagram
+
+top to bottom direction
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam usecase {
+    BackgroundColor #F0F4FF
+    BorderColor #2563EB
+    FontSize 10
+}
+skinparam package {
+    BorderColor #64748B
+    BackgroundColor #FEFEFE
+    FontSize 11
+    FontStyle bold
+}
+skinparam arrowColor #475569
+
+' === ACTORS ===
+actor "Hospital\nNode" as Client #87CEEB
+actor "Administrator" as Admin #90EE90
+actor "Malicious\nNode" as Attacker #FFB6C1
+
+' === SYSTEM BOUNDARY ===
+rectangle "MedBlockDFL System" #FAFAFA {
+    
+    package "Local Training" #F8FAFC {
+        usecase "Train Local\nModel" as UC1
+        usecase "Compute\nGradients" as UC2
+    }
+    
+    package "DAVS Selection" #EFF6FF {
+        usecase "Create Gradient\nSketch" as UC3
+        usecase "Calculate\nRepresentativeness" as UC4
+        usecase "Select Verifier\nCommittee" as UC5
+    }
+    
+    package "PBFT Consensus" #FEF3C7 {
+        usecase "Validate Model\nUpdate" as UC6
+        usecase "Reach Byzantine\nConsensus" as UC7
+    }
+    
+    package "Blockchain & Aggregation" #F0FDF4 {
+        usecase "Aggregate\nUpdates" as UC8
+        usecase "Commit to\nBlockchain" as UC9
+        usecase "Distribute Global\nModel" as UC10
+    }
+    
+    package "Security" #FEE2E2 {
+        usecase "Detect Poisoned\nGradients" as UC11
+        usecase "Reject Malicious\nUpdates" as UC12
+    }
+    
+    package "Administration" #F5F3FF {
+        usecase "Configure System\nParameters" as UC13
+        usecase "Monitor Training\nMetrics" as UC14
+        usecase "Audit Blockchain\nHistory" as UC15
+    }
+}
+
+' === PRIMARY INTERACTIONS ===
+Client --> UC1
+Client --> UC3
+Client --> UC6 : if selected
+Client --> UC10
+Client --> UC15
+
+Attacker --> UC1 : manipulate
+Attacker ..> UC11 : <<triggers>>
+
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+
+' === WORKFLOW (Include) ===
+UC1 .down.> UC2 : <<include>>
+UC2 .down.> UC3 : <<include>>
+UC3 .down.> UC4 : <<include>>
+UC4 .down.> UC5 : <<include>>
+UC5 .down.> UC6 : <<include>>
+UC6 .down.> UC7 : <<include>>
+UC7 .down.> UC8 : <<include>>
+UC8 .down.> UC9 : <<include>>
+UC9 .down.> UC10 : <<include>>
+
+' === DEFENSE (Extend) ===
+UC11 .down.> UC12 : <<extend>>
+UC12 .down.> UC8 : <<extend>>
+
+' === KEY ANNOTATIONS ===
+note right of UC3
+  Random projection
+  reduces dimensionality
+end note
+
+note right of UC5
+  Top-k nodes by
+  representativeness score
+end note
+
+note left of UC7
+  Byzantine Fault Tolerant
+  requires 2f+1 agreement
+end note
+
+note bottom of Attacker
+  Defended by DAVS filtering,
+  PBFT validation, and
+  robust aggregation
+end note
+
+@enduml

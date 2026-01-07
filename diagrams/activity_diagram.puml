@@ -1,0 +1,60 @@
+@startuml
+title MedBlockDFL System – Activity Diagram
+
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam backgroundColor #FAFAFA
+skinparam ActivityFontSize 11
+skinparam ActivityBorderColor #2563EB
+skinparam ActivityBackgroundColor #F0F4FF
+
+start
+
+:Initialize Global Model;
+
+partition "Local Training" #F8FAFC {
+    :Train Local Models;
+    :Compute Gradients;
+}
+
+partition "Gradient Sketching" #EFF6FF {
+    :Create Gradient Sketches;
+    :Broadcast to Network;
+}
+
+partition "DAVS Selection" #F0FDF4 {
+    :Calculate Representativeness Scores;
+    :Select Top-k Verifier Committee;
+}
+
+if (Client Selected?) then (yes)
+    :Submit Gradients to Committee;
+    :Run PBFT Consensus;
+    
+    if (Consensus Reached?) then (yes)
+        :Validate Update;
+    else (no)
+        stop
+    endif
+else (no)
+    :Wait for Result;
+endif
+
+partition "Aggregation" #FEE2E2 {
+    :Apply Robust Aggregation;
+}
+
+partition "Blockchain" #F5F3FF {
+    :Create Block;
+    :Append to Chain;
+}
+
+:Broadcast Updated Model;
+
+if (More Rounds?) then (yes)
+    backward:Next Round;
+else (no)
+    stop
+endif
+
+@enduml

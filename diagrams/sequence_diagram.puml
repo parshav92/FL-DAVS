@@ -1,0 +1,69 @@
+@startuml
+title MedBlockDFL System – Sequence Diagram (Single FL Round)
+
+skinparam sequenceMessageAlign center
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam backgroundColor #FAFAFA
+skinparam BoxPadding 10
+skinparam ParticipantPadding 20
+
+skinparam participant {
+    BackgroundColor #F0F4FF
+    BorderColor #2563EB
+    FontSize 11
+}
+
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #1E88E5
+    FontSize 11
+}
+
+' === PARTICIPANTS ===
+actor "Client" as Client
+participant "DAVS" as DAVS
+participant "PBFT" as PBFT
+participant "Aggregator" as Agg
+participant "Blockchain" as BC
+
+autonumber
+
+== 1. Local Training ==
+Client -> Client: Train local model
+Client -> Client: Compute gradients
+
+== 2. Gradient Sketching ==
+Client -> Client: Create gradient sketch
+Client -> DAVS: Broadcast sketch
+activate DAVS
+
+== 3. DAVS Selection ==
+DAVS -> DAVS: Calculate representativeness
+DAVS -> DAVS: Select top-k verifiers
+DAVS -> PBFT: Form committee
+deactivate DAVS
+activate PBFT
+
+== 4. PBFT Consensus ==
+Client -> PBFT: Submit gradients
+PBFT -> PBFT: Pre-Prepare
+PBFT -> PBFT: Prepare
+PBFT -> PBFT: Commit (2f+1)
+PBFT -> Agg: Validated updates
+deactivate PBFT
+
+== 5. Aggregation ==
+activate Agg
+Agg -> Agg: Robust aggregation
+Agg -> BC: Commit model
+deactivate Agg
+activate BC
+
+== 6. Blockchain ==
+BC -> BC: Create block
+BC -> BC: Append to chain
+BC -> Client: Broadcast updated model
+deactivate BC
+
+@enduml

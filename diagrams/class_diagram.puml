@@ -1,0 +1,146 @@
+@startuml
+title MedBlockDFL System – Class Diagram
+
+top to bottom direction
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam backgroundColor #FAFAFA
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #F0F4FF
+    BorderColor #2563EB
+    ArrowColor #475569
+    FontSize 11
+}
+
+skinparam package {
+    BackgroundColor #FEFEFE
+    BorderColor #64748B
+    FontStyle bold
+    FontSize 12
+}
+
+' === CORE CLASSES ===
+
+package "Data Layer" #F8FAFC {
+    class ClientDataset {
+        - X_train, y_train
+        - X_test, y_test
+        --
+        + get_batch()
+    }
+}
+
+package "Model Layer" #EFF6FF {
+    class CNNModel {
+        - num_classes
+        --
+        + forward()
+        + get_gradients()
+    }
+}
+
+package "Federated Learning" #FEF3C7 {
+    class Client {
+        - client_id
+        - model: CNNModel
+        - dataset: ClientDataset
+        --
+        + train_local_model()
+        + compute_gradients()
+        + create_sketch()
+    }
+    
+    class Server {
+        - clients: List[Client]
+        - global_model: CNNModel
+        --
+        + broadcast_model()
+        + coordinate_round()
+    }
+    
+    class Aggregator {
+        --
+        + fedavg()
+        + krum()
+        + robust_aggregate()
+    }
+}
+
+package "DAVS Selection" #EFF6FF {
+    class GradientSketcher {
+        - sketch_dimension
+        --
+        + random_projection()
+        + cosine_similarity()
+    }
+    
+    class DAVSSelector {
+        - committee_size
+        --
+        + calculate_representativeness()
+        + select_committee()
+    }
+}
+
+package "PBFT Consensus" #FEF3C7 {
+    class PBFTCommittee {
+        - nodes: List
+        - required_votes: 2f+1
+        --
+        + run_consensus()
+        + validate_update()
+    }
+}
+
+package "Blockchain" #F0FDF4 {
+    class Block {
+        - index
+        - timestamp
+        - data
+        - hash
+        --
+        + calculate_hash()
+    }
+    
+    class Blockchain {
+        - chain: List[Block]
+        --
+        + add_block()
+        + get_latest_block()
+    }
+}
+
+package "Security" #FEE2E2 {
+    class MaliciousClient {
+        - attack_type
+        --
+        + poison_gradient()
+    }
+}
+
+' === RELATIONSHIPS (Vertical Flow) ===
+
+ClientDataset -down-> Client : "used by"
+CNNModel -down-> Client : "trained by"
+CNNModel -down-> Server : "managed by"
+
+Client -down-> GradientSketcher : "creates sketch"
+Client -down-> Server : "sends update to"
+
+Server -down-> DAVSSelector : "uses"
+Server -down-> Aggregator : "uses"
+
+GradientSketcher -down-> DAVSSelector : "feeds into"
+DAVSSelector -down-> PBFTCommittee : "selects"
+
+PBFTCommittee -down-> Aggregator : "validates for"
+Aggregator -down-> Blockchain : "commits to"
+
+Blockchain *-down- Block : "contains"
+
+MaliciousClient -up-|> Client : "inherits"
+DAVSSelector .down.> MaliciousClient : "filters out"
+
+@enduml

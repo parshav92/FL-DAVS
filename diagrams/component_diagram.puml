@@ -1,0 +1,120 @@
+@startuml
+title MedBlockDFL System – Component Diagram
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam backgroundColor #FAFAFA
+
+skinparam component {
+    BackgroundColor #F0F4FF
+    BorderColor #2563EB
+    FontSize 11
+}
+
+skinparam package {
+    BackgroundColor #FEFEFE
+    BorderColor #64748B
+    FontStyle bold
+}
+
+skinparam interface {
+    BackgroundColor #FFFFFF
+    BorderColor #2563EB
+}
+
+' === CLIENT NODES ===
+package "Hospital Nodes (N=10)" #F8FAFC {
+    [Local Dataset\n(MedMNIST)] as Dataset
+    [CNN Model] as LocalModel
+    [Local Trainer] as Trainer
+    [Gradient\nComputer] as GradComp
+    [Gradient\nSketcher] as Sketcher
+    
+    Dataset --> LocalModel
+    LocalModel --> Trainer
+    Trainer --> GradComp
+    GradComp --> Sketcher
+}
+
+' === COMMUNICATION ===
+package "Communication Layer" #EFF6FF {
+    [P2P Network] as P2P
+    [Model\nBroadcaster] as Broadcaster
+}
+
+' === DAVS ENGINE ===
+package "DAVS Engine" #F0FDF4 {
+    [Sketch\nCollector] as Collector
+    [Similarity\nCalculator] as SimCalc
+    [Score\nComputer] as ScoreComp
+    [Committee\nSelector] as Selector
+    
+    Collector --> SimCalc
+    SimCalc --> ScoreComp
+    ScoreComp --> Selector
+}
+
+' === CONSENSUS ===
+package "PBFT Consensus" #FEF3C7 {
+    [Verifier\nCommittee] as Committee
+    [PBFT\nCoordinator] as PBFT
+    [Voting\nManager] as Voting
+    
+    Committee --> PBFT
+    PBFT --> Voting
+}
+
+' === AGGREGATION ===
+package "Aggregation Layer" #FEE2E2 {
+    [Update\nCollector] as UpdateCol
+    [Robust\nAggregator] as Aggregator
+    [Global Model\nGenerator] as GlobalGen
+    
+    UpdateCol --> Aggregator
+    Aggregator --> GlobalGen
+}
+
+' === BLOCKCHAIN ===
+package "Blockchain Layer" #F5F3FF {
+    [Block\nCreator] as BlockCreator
+    [Hash\nGenerator] as HashGen
+    [Chain\nManager] as ChainMgr
+    [Storage] as Storage
+    
+    BlockCreator --> HashGen
+    HashGen --> ChainMgr
+    ChainMgr --> Storage
+}
+
+' === SECURITY ===
+package "Security & Monitoring" #FFE4E1 {
+    [Attack\nDetector] as Detector
+    [Metrics\nLogger] as Logger
+}
+
+' === DATA FLOWS ===
+Sketcher --> P2P : sketch
+P2P --> Collector : sketches
+Selector --> Committee : selected nodes
+GradComp --> Committee : full gradients
+Voting --> UpdateCol : validated updates
+GlobalGen --> BlockCreator : model update
+Storage --> Broadcaster : global model
+Broadcaster --> LocalModel : updated model
+
+' === MONITORING ===
+Collector ..> Detector : monitor
+Selector ..> Logger : log scores
+PBFT ..> Logger : log consensus
+GlobalGen ..> Logger : log metrics
+
+' === LEGEND ===
+legend right
+  |= Symbol |= Meaning |
+  | ——> | Data Flow |
+  | ···> | Monitoring |
+  | Top-Down | Processing Order |
+endlegend
+
+@enduml
