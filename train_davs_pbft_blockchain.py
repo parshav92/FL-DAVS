@@ -70,7 +70,7 @@ def main():
     ATTACK_SCALE = 10.0
     
     # Initialize logger
-    experiment_name = f"davs_pbft_blockchain_{DATASET}_{DATA_SPLIT}_attack{int(MALICIOUS_RATIO*100)}"
+    experiment_name = f"hybrid_davs_pbft_blockchain_{DATASET}_{DATA_SPLIT}_attack{int(MALICIOUS_RATIO*100)}"
     logger = AttackLogger(
         experiment_name=experiment_name,
         save_dir=RESULTS_DIR,
@@ -217,23 +217,30 @@ def main():
         print(f"✓ All clients completed local training")
         
         # Phase 2: Gradient Sketching (ALL clients)
-        print(f"\n--- Phase 2: Gradient Sketching ---")
+        print(f"\n--- Phase 2: Gradient Sketching & Norm Calculation ---")
         client_sketches = {}
+        client_grad_norms = {}
         for client_id, gradients in enumerate(client_gradients):
             grad_list = [gradients[name] for name in sorted(gradients.keys())]
             grad_tensor = torch.cat([g.flatten() for g in grad_list])
+            
+            # NEW: Calculate and store the L2 norm of the full gradient
+            client_grad_norms[client_id] = torch.norm(grad_tensor).item()
+            
             sketch = gradient_sketcher.sketcher.sketch(grad_tensor)
             client_sketches[client_id] = sketch
         
-        print(f"✓ All clients computed sketches ({SKETCH_DIM}-dim)")
+        print(f"✓ All clients computed sketches ({SKETCH_DIM}-dim) and norms")
         print(f"  Bandwidth: {len(client_sketches)} × {SKETCH_DIM} × 4 bytes = {len(client_sketches)*SKETCH_DIM*4/1024:.2f} KB")
         
         # Phase 3: DAVS Committee Selection
-        print(f"\n--- Phase 3: DAVS Committee Selection ---")
-        committee, representativeness_scores = davs_selector.select_committee(client_sketches)
+        print(f"\n--- Phase 3: Hybrid DAVS Committee Selection ---")
+        committee, representativeness_scores = davs_selector.select_committee(
+            client_sketches, client_grad_norms
+        )
         
         print(f"✓ Committee selected: {committee}")
-        print(f"  DAVS scores (top-5):")
+        print(f"  Hybrid DAVS scores (top-5):")
         for i in committee[:5]:
             malicious_tag = " 🔴 MALICIOUS" if i in MALICIOUS_IDS else " ✅ HONEST"
             print(f"    Node {i}: {representativeness_scores[i]:.4f}{malicious_tag}")
@@ -334,6 +341,7 @@ def main():
             logger.log_round(
                 round_num=round_num,
                 davs_scores=representativeness_scores,
+                grad_norms=client_grad_norms,  # Pass norms to logger
                 committee=committee,
                 consensus_result=consensus_result,
                 train_loss=train_loss,

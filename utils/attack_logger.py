@@ -52,6 +52,7 @@ class AttackLogger:
         self,
         round_num: int,
         davs_scores: Dict[int, float],
+        grad_norms: Dict[int, float],
         committee: List[int],
         consensus_result: Dict[str, Any],
         train_loss: float,
@@ -66,6 +67,7 @@ class AttackLogger:
         Args:
             round_num: Round number
             davs_scores: {node_id: representativeness_score} for ALL nodes
+            grad_norms: {node_id: gradient_l2_norm} for ALL nodes
             committee: List of selected committee member IDs
             consensus_result: PBFT consensus details
             train_loss: Training loss
@@ -97,6 +99,7 @@ class AttackLogger:
         round_data = {
             'round': round_num,
             'davs_scores': {int(k): float(v) for k, v in davs_scores.items()},
+            'grad_norms': {int(k): float(v) for k, v in grad_norms.items()},
             'committee': committee,
             'committee_size': len(committee),
             'malicious_in_committee': malicious_in_committee,
@@ -192,8 +195,10 @@ class AttackLogger:
         # Plot 3: Box plot of scores (last round)
         ax3 = axes[1, 0]
         last_round = self.rounds_data[-1]
-        honest_scores = [last_round['davs_scores'][nid] for nid in self.honest_nodes]
-        malicious_scores = [last_round['davs_scores'][nid] for nid in self.malicious_nodes]
+        # Handle both int and string keys (JSON converts int keys to strings)
+        davs_scores = last_round['davs_scores']
+        honest_scores = [davs_scores.get(nid, davs_scores.get(str(nid), 0)) for nid in self.honest_nodes]
+        malicious_scores = [davs_scores.get(nid, davs_scores.get(str(nid), 0)) for nid in self.malicious_nodes]
         
         ax3.boxplot([honest_scores, malicious_scores],
                     labels=['Honest', 'Malicious'],
@@ -203,15 +208,25 @@ class AttackLogger:
         ax3.set_title(f'Score Distribution (Round {last_round["round"]})')
         ax3.grid(True, alpha=0.3, axis='y')
         
-        # Plot 4: Malicious selection rate
+        # Plot 4: Gradient Norms
         ax4 = axes[1, 1]
-        malicious_rates = [r['malicious_selection_rate'] * 100 for r in self.rounds_data]
-        ax4.plot(rounds, malicious_rates, 'r-o', linewidth=2, markersize=4)
-        ax4.axhline(y=len(self.malicious_nodes) / self.total_nodes * 100,
-                    color='orange', linestyle='--', label='Random selection baseline')
+        
+        # Handle both int and string keys
+        honest_norms_per_round = []
+        malicious_norms_per_round = []
+        for r in self.rounds_data:
+            grad_norms = r['grad_norms']
+            honest_norms = [grad_norms.get(nid, grad_norms.get(str(nid), 0)) for nid in self.honest_nodes]
+            malicious_norms = [grad_norms.get(nid, grad_norms.get(str(nid), 0)) for nid in self.malicious_nodes]
+            honest_norms_per_round.append(np.mean(honest_norms))
+            malicious_norms_per_round.append(np.mean(malicious_norms))
+        
+        ax4.plot(rounds, honest_norms_per_round, 'g-o', label='Honest Avg Norm', linewidth=2, markersize=4)
+        ax4.plot(rounds, malicious_norms_per_round, 'r-x', label='Malicious Avg Norm', linewidth=2, markersize=4)
         ax4.set_xlabel('Round')
-        ax4.set_ylabel('Malicious in Committee (%)')
-        ax4.set_title('Malicious Node Selection Rate')
+        ax4.set_ylabel('Gradient L2 Norm')
+        ax4.set_title('Gradient Norms: Honest vs Malicious')
+        ax4.set_yscale('log')
         ax4.legend()
         ax4.grid(True, alpha=0.3)
         

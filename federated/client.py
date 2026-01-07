@@ -76,7 +76,9 @@ class FederatedClient:
                 
                 # Flatten target if needed (MedMNIST returns [batch, 1])
                 if len(target.shape) > 1:
-                    target = target.squeeze()
+                    target = target.squeeze(-1)  
+                if target.size(0) == 0:
+                    continue
                 
                 # Zero gradients
                 optimizer.zero_grad()

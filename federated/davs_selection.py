@@ -61,58 +61,72 @@ class DAVSSelector:
     
     def compute_representativeness_score(self, 
                                          client_sketch: torch.Tensor,
-                                         all_sketches: List[torch.Tensor]) -> float:
+                                         all_sketches: List[torch.Tensor],
+                                         client_grad_norm: float,
+                                         all_grad_norms: List[float],
+                                         alpha: float = 0.5) -> float:
         """
-        Compute Representativeness Score as defined in DAVS specification.
-        
-        "The Representativeness Score is defined as the mean cosine similarity 
-        between a client's sketch and the sketches of all other participating clients."
+        Compute Hybrid Representativeness Score using both direction and magnitude.
         
         Args:
-            client_sketch: Gradient sketch of target client (128-dim)
-            all_sketches: List of all gradient sketches (128-dim each)
+            client_sketch: Gradient sketch of target client.
+            all_sketches: List of all gradient sketches.
+            client_grad_norm: L2 norm of the client's full gradient.
+            all_grad_norms: List of all gradient norms.
+            alpha: Weight for combining cosine and magnitude scores.
         
         Returns:
-            Representativeness score (mean cosine similarity)
+            Hybrid representativeness score.
         """
+        # 1. Direction Score (Original DAVS)
         similarities = []
-        
         for other_sketch in all_sketches:
-            # Skip self-comparison
             if not torch.equal(client_sketch, other_sketch):
                 sim = self.compute_cosine_similarity(client_sketch, other_sketch)
                 similarities.append(sim)
         
-        if len(similarities) == 0:
-            return 0.0
+        direction_score = float(np.mean(similarities)) if similarities else 0.0
+
+        # 2. Magnitude Score (New Component)
+        # Measures how far a client's gradient norm is from the median norm.
+        median_norm = float(np.median(all_grad_norms))
+        deviation = abs(client_grad_norm - median_norm)
         
-        # Mean similarity = representativeness
-        return float(np.mean(similarities))
+        # Score is 1 if norm is at the median, decreases with deviation.
+        # The + 1e-10 prevents division by zero if all norms are identical.
+        magnitude_score = 1.0 - (deviation / (median_norm + 1e-10))
+
+        # 3. Hybrid Score
+        # alpha=0.5 gives equal weight to direction and magnitude.
+        hybrid_score = alpha * direction_score + (1 - alpha) * magnitude_score
+        
+        return hybrid_score
     
     def select_committee(self, 
-                        client_sketches: Dict[int, torch.Tensor]) -> Tuple[List[int], Dict[int, float]]:
+                        client_sketches: Dict[int, torch.Tensor],
+                        client_grad_norms: Dict[int, float]) -> Tuple[List[int], Dict[int, float]]:
         """
-        Select verification committee using DAVS.
-        
-        CRITICAL: This is the ONLY method that matters in DAVS.
-        - Input: gradient sketches (128-dim) ONLY
-        - Output: top-k clients by representativeness score
-        - NO historical data, NO heuristics, NO multi-factor scoring
+        Select verification committee using Magnitude-Aware DAVS.
         
         Args:
-            client_sketches: Dictionary mapping client_id to gradient sketch (128-dim)
+            client_sketches: {client_id: gradient_sketch}
+            client_grad_norms: {client_id: gradient_norm}
         
         Returns:
-            Tuple of (committee_ids, representativeness_scores)
+            Tuple of (committee_ids, hybrid_scores)
         """
         scores = {}
         all_sketches = list(client_sketches.values())
+        all_grad_norms = list(client_grad_norms.values())
         
-        # Compute representativeness for each client
+        # Compute hybrid score for each client
         for client_id, sketch in client_sketches.items():
-            scores[client_id] = self.compute_representativeness_score(sketch, all_sketches)
+            grad_norm = client_grad_norms[client_id]
+            scores[client_id] = self.compute_representativeness_score(
+                sketch, all_sketches, grad_norm, all_grad_norms
+            )
         
-        # Select top-k by representativeness (highest similarity = most representative)
+        # Select top-k by hybrid score
         sorted_clients = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         committee = [client_id for client_id, _ in sorted_clients[:self.committee_size]]
         
@@ -165,7 +179,10 @@ if __name__ == "__main__":
     print("Computing Representativeness Scores")
     print("="*70)
     
-    committee, scores = selector.select_committee(client_sketches)
+    # Compute dummy gradient norms (L2 norms)
+    client_grad_norms = {client_id: torch.norm(sketch).item() for client_id, sketch in client_sketches.items()}
+    
+    committee, scores = selector.select_committee(client_sketches, client_grad_norms)
     
     print("\nRepresentativeness Scores (mean cosine similarity):")
     for client_id in sorted(scores.keys()):
