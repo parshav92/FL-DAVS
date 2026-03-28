@@ -1,0 +1,25 @@
+{
+  "dataset": "pathmnist",
+  "num_clients": 10,
+  "malicious_clients": 2,
+  "malicious_ratio": 0.2,
+  "malicious_ids": [
+    8,
+    9
+  ],
+  "attack_type": "flip",
+  "attack_scale": 10.0,
+  "data_split": "non_iid",
+  "local_epochs": 2,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "num_rounds": 20,
+  "device": "cpu",
+  "model": "SimpleCNN",
+  "gradient_sketching": true,
+  "sketch_dim": 128,
+  "davs_selection": true,
+  "committee_size": 5,
+  "pbft_consensus": true,
+  "blockchain": true
+}

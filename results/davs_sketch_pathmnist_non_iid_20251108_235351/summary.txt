@@ -1,0 +1,35 @@
+============================================================
+FL+DAVS Experiment Summary
+============================================================
+
+Experiment: davs_sketch_pathmnist_non_iid
+Timestamp: 2025-11-09 00:40:52
+Total Training Time: 2820.85 seconds (47.01 minutes)
+
+Configuration:
+------------------------------------------------------------
+  dataset: pathmnist
+  num_clients: 10
+  data_split: non_iid
+  local_epochs: 2
+  batch_size: 32
+  learning_rate: 0.001
+  num_rounds: 20
+  device: cpu
+  model: SimpleCNN
+  gradient_sketching: True
+  sketch_dim: 128
+  davs_selection: True
+  committee_size: 7
+
+Final Results:
+------------------------------------------------------------
+  Final Train Loss: 0.1678
+  Final Train Accuracy: 94.20%
+  Final Test Loss: 0.8190
+  Final Test Accuracy: 83.09%
+
+Best Results:
+------------------------------------------------------------
+  Best Train Accuracy: 94.20% (Round 20)
+  Best Test Accuracy: 83.09% (Round 20)

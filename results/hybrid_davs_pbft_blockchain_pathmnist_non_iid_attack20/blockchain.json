@@ -1,0 +1,1066 @@
+[
+  {
+    "index": 0,
+    "timestamp": 1763988984.8338966,
+    "hash": "69006b31a7d1f55f688bae48419e2ceb7d96f0afe1480df8166cf83486ffc05a",
+    "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "nonce": 0,
+    "data": {
+      "model_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "committee": [],
+      "davs_scores": {},
+      "consensus": {
+        "reached": true,
+        "votes": {},
+        "quorum_size": 0
+      },
+      "round_metrics": {
+        "train_loss": 0.0,
+        "train_acc": 0.0,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      },
+      "message": "Genesis Block - MedBlockDFL Initialized"
+    }
+  },
+  {
+    "index": 1,
+    "timestamp": 1763989094.4703841,
+    "hash": "99c28a3a0f6eaaeb8a115cc82b5361eab15b62f6afeeceadda167a0e807f23f6",
+    "previous_hash": "69006b31a7d1f55f688bae48419e2ceb7d96f0afe1480df8166cf83486ffc05a",
+    "nonce": 0,
+    "data": {
+      "model_hash": "ea89883382861f882840880875944ebcee691e010d7208ba7cba579df7ceb860",
+      "committee": [
+        3,
+        6,
+        2,
+        7,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4709152470146648,
+        "1": 0.4518960455999537,
+        "2": 0.5465476187949959,
+        "3": 0.574305513092269,
+        "4": 0.504693048310499,
+        "5": 0.3855482810468385,
+        "6": 0.5708768828201354,
+        "7": 0.5124005109195088,
+        "8": -2.257991012432189,
+        "9": -4.53693040455878
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "6": true,
+          "2": true,
+          "7": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.8660126317023384,
+        "train_acc": 69.64642873016578,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 2,
+    "timestamp": 1763989196.1949997,
+    "hash": "bc894a9b48d30b25716a56dcf9fe85d20b6f62a67eed9f94a768238873a42b6b",
+    "previous_hash": "99c28a3a0f6eaaeb8a115cc82b5361eab15b62f6afeeceadda167a0e807f23f6",
+    "nonce": 0,
+    "data": {
+      "model_hash": "b96ee7b4dee5a9082ab01636bb0cc5491d88783e295313fa034d141e5021336d",
+      "committee": [
+        6,
+        0,
+        2,
+        3,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.5486640022994185,
+        "1": 0.4602131071433012,
+        "2": 0.5326976665247591,
+        "3": 0.5170571871594227,
+        "4": 0.5095997955566947,
+        "5": 0.4475976018577064,
+        "6": 0.5758070950762211,
+        "7": 0.4617888352670016,
+        "8": -2.284164398186646,
+        "9": -4.930778062476146
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "0": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.6318136738623574,
+        "train_acc": 77.5962264989555,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 3,
+    "timestamp": 1763989314.8417816,
+    "hash": "5ac8b535500f934c988d979622980842b66bca0fdfd174ab1abae2aa198d63e2",
+    "previous_hash": "bc894a9b48d30b25716a56dcf9fe85d20b6f62a67eed9f94a768238873a42b6b",
+    "nonce": 0,
+    "data": {
+      "model_hash": "a201653e1b964d7151fc4caa9ba1c0ad940e98ccc13156911eeb7e809dbed559",
+      "committee": [
+        2,
+        6,
+        0,
+        3,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.5233168606444772,
+        "1": 0.4277986314275999,
+        "2": 0.5353526209164469,
+        "3": 0.5043454565289703,
+        "4": 0.46849743295327434,
+        "5": 0.36658529566020903,
+        "6": 0.5276589883071325,
+        "7": 0.4332001063101828,
+        "8": -2.464869485106211,
+        "9": -4.960900247063533
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "6": true,
+          "0": true,
+          "3": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.5334006204937081,
+        "train_acc": 81.08138139472865,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 4,
+    "timestamp": 1763989434.4154558,
+    "hash": "0820296c78de7c7ecc4b7ad77041ee6f4701d5ee49d909a3fdefc6f36b537857",
+    "previous_hash": "5ac8b535500f934c988d979622980842b66bca0fdfd174ab1abae2aa198d63e2",
+    "nonce": 0,
+    "data": {
+      "model_hash": "22566c0e3f68878583520c3f9a9ae2babee59d248307c0c93b510076a848830c",
+      "committee": [
+        0,
+        2,
+        6,
+        3,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.5367825331398322,
+        "1": 0.4073513401680444,
+        "2": 0.512064574624784,
+        "3": 0.501868063522697,
+        "4": 0.47564567138602715,
+        "5": 0.3832706509673683,
+        "6": 0.5075935623371144,
+        "7": 0.4059986520002474,
+        "8": -2.377954445718943,
+        "9": -4.779769279891641
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "0": true,
+          "2": true,
+          "6": true,
+          "3": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 0,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.4620934589150429,
+        "train_acc": 83.85428241255167,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 5,
+    "timestamp": 1763989541.51077,
+    "hash": "27e9f74fb082fea8469901ea5f342f73023316a49ff924e88aebb428661221e2",
+    "previous_hash": "0820296c78de7c7ecc4b7ad77041ee6f4701d5ee49d909a3fdefc6f36b537857",
+    "nonce": 0,
+    "data": {
+      "model_hash": "cc4064384ee9eaa9ac43f339dcbf29cfde77d2e5f03af946f105c11660faf49b",
+      "committee": [
+        2,
+        3,
+        6,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4691965022664746,
+        "1": 0.41073076685987564,
+        "2": 0.5031844830328506,
+        "3": 0.4988857527428123,
+        "4": 0.46359614434120977,
+        "5": 0.38628515817269404,
+        "6": 0.4974719747054195,
+        "7": 0.40883234907546373,
+        "8": -2.2764127198178716,
+        "9": -4.78632607604395
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "3": true,
+          "6": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.4191175112272884,
+        "train_acc": 85.38490599582204,
+        "test_loss": 0.9388812874423133,
+        "test_acc": 73.03621169916434
+      }
+    }
+  },
+  {
+    "index": 6,
+    "timestamp": 1763989636.9746568,
+    "hash": "8a577fcc38b27d2b5b1afc237823d3b046e103ec6df4422afc6a60778330cda2",
+    "previous_hash": "27e9f74fb082fea8469901ea5f342f73023316a49ff924e88aebb428661221e2",
+    "nonce": 0,
+    "data": {
+      "model_hash": "da76a3986709433abb8af601fad1f6710cf7db8d3bd71f08162a3810463cd44d",
+      "committee": [
+        6,
+        2,
+        3,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.455029178939285,
+        "1": 0.3800921439991348,
+        "2": 0.47793153110393083,
+        "3": 0.4722485658008979,
+        "4": 0.4362929496614724,
+        "5": 0.31947817843489523,
+        "6": 0.49109065300803906,
+        "7": 0.3603345393071848,
+        "8": -2.418586410186752,
+        "9": -4.668310109636796
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "2": true,
+          "3": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.3845911242571518,
+        "train_acc": 86.64218409707098,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 7,
+    "timestamp": 1763989750.9297628,
+    "hash": "9117107d7c5684e02e1a2be267061bca6d5a3592fcd7c90f84f567429ceec504",
+    "previous_hash": "8a577fcc38b27d2b5b1afc237823d3b046e103ec6df4422afc6a60778330cda2",
+    "nonce": 0,
+    "data": {
+      "model_hash": "89b7aceb2b253fd9e43cbd75ade07e1d28ea1488d297e4c02e46c322891e9f3e",
+      "committee": [
+        6,
+        3,
+        2,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.47553285047193183,
+        "1": 0.4144768437881619,
+        "2": 0.478297567271714,
+        "3": 0.47898722952737127,
+        "4": 0.4374526023188848,
+        "5": 0.35687610451550555,
+        "6": 0.5008901921441912,
+        "7": 0.3924380485840319,
+        "8": -2.3306418029419707,
+        "9": -4.763377233521167
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "3": true,
+          "2": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.36097306303939924,
+        "train_acc": 87.42999688875061,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 8,
+    "timestamp": 1763989855.0119016,
+    "hash": "13df656e2f2d7b8957a8f0ffc87ba90d308c37c352e57e7d48f4b02da1c72b13",
+    "previous_hash": "9117107d7c5684e02e1a2be267061bca6d5a3592fcd7c90f84f567429ceec504",
+    "nonce": 0,
+    "data": {
+      "model_hash": "c17af7e1d7809a57f36f30e5fb21d0f1ea20bcfeea7b19019e203a09c8a97977",
+      "committee": [
+        3,
+        2,
+        0,
+        6,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4686582174948042,
+        "1": 0.4062750860507184,
+        "2": 0.49148587960081574,
+        "3": 0.49388656406874654,
+        "4": 0.43455764689546617,
+        "5": 0.34233037617842765,
+        "6": 0.4681164819155247,
+        "7": 0.37060212312725505,
+        "8": -2.3811455582598113,
+        "9": -4.788395767457086
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "2": true,
+          "0": true,
+          "6": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.3358719860030548,
+        "train_acc": 88.33448153251256,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 9,
+    "timestamp": 1763989973.5071623,
+    "hash": "c25ab870c2e2347176adcd74bf1d106e5334ce61ac49195da5f75fbe6bbcce8b",
+    "previous_hash": "13df656e2f2d7b8957a8f0ffc87ba90d308c37c352e57e7d48f4b02da1c72b13",
+    "nonce": 0,
+    "data": {
+      "model_hash": "ae19679809c83157aea77ea28f979460f8fb9e8d889f7a034f3e9bff87c905f1",
+      "committee": [
+        6,
+        0,
+        3,
+        2,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4696736058381788,
+        "1": 0.4020859692594306,
+        "2": 0.46198163698355366,
+        "3": 0.4668427309893735,
+        "4": 0.4120539953544008,
+        "5": 0.32521712275531256,
+        "6": 0.47848239763656814,
+        "7": 0.388992072553134,
+        "8": -2.3682818627430433,
+        "9": -4.710272162314226
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "0": true,
+          "3": true,
+          "2": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.3175865364966533,
+        "train_acc": 89.11173829947998,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 10,
+    "timestamp": 1763990085.352064,
+    "hash": "6665e3687c6199ba3c43c3be364aaaeb87d2a5045050c0dfd13d3a94be1d7352",
+    "previous_hash": "c25ab870c2e2347176adcd74bf1d106e5334ce61ac49195da5f75fbe6bbcce8b",
+    "nonce": 0,
+    "data": {
+      "model_hash": "615a5a32d4515d6af7cef3efb90bc376752a5e0c417ea3f0bc02b8192aacd840",
+      "committee": [
+        2,
+        3,
+        6,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.45638816913918134,
+        "1": 0.38900983941873896,
+        "2": 0.5028415610619984,
+        "3": 0.49662730601691973,
+        "4": 0.45436236946194636,
+        "5": 0.3424096125015514,
+        "6": 0.48021800462875286,
+        "7": 0.3667997449774021,
+        "8": -2.3716462929968265,
+        "9": -4.817338602181193
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "3": true,
+          "6": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.30181960201167485,
+        "train_acc": 89.61453842392996,
+        "test_loss": 0.9810460258192486,
+        "test_acc": 78.59331476323119
+      }
+    }
+  },
+  {
+    "index": 11,
+    "timestamp": 1763990188.900788,
+    "hash": "4fd7691a6b6fcb555cc6d3e3234164a7c0cbc4fe49e7ca1219257f44b62171d1",
+    "previous_hash": "6665e3687c6199ba3c43c3be364aaaeb87d2a5045050c0dfd13d3a94be1d7352",
+    "nonce": 0,
+    "data": {
+      "model_hash": "9b822540977807c607cac7baaddf43537253c0d79de4d8d9424ea2a1d28f00a8",
+      "committee": [
+        6,
+        3,
+        2,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4709360586613857,
+        "1": 0.4385672442808691,
+        "2": 0.47547091010860587,
+        "3": 0.4826709333714709,
+        "4": 0.45084642775285144,
+        "5": 0.31300553563430994,
+        "6": 0.4944232961285586,
+        "7": 0.3577813409919095,
+        "8": -2.5573334272340302,
+        "9": -4.880326285414177
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "3": true,
+          "2": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.2905565105573284,
+        "train_acc": 90.02900128894618,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 12,
+    "timestamp": 1763990321.7699852,
+    "hash": "9d6de8e13f37375adda5e82a43e690bf5ca2f687aa53b49e4a1ae8346a948d0d",
+    "previous_hash": "4fd7691a6b6fcb555cc6d3e3234164a7c0cbc4fe49e7ca1219257f44b62171d1",
+    "nonce": 0,
+    "data": {
+      "model_hash": "028a77a43d6e6ad02bb47523c86883e0795a4db8225c6dd4b88845ce1c886c85",
+      "committee": [
+        3,
+        2,
+        0,
+        6,
+        1
+      ],
+      "davs_scores": {
+        "0": 0.4619442996199093,
+        "1": 0.4172253273227084,
+        "2": 0.4875756149226275,
+        "3": 0.491279258538994,
+        "4": 0.40260665404427914,
+        "5": 0.32468996138137857,
+        "6": 0.45089060954269106,
+        "7": 0.34597751662487775,
+        "8": -2.533582217771236,
+        "9": -4.794363521091158
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "2": true,
+          "0": true,
+          "6": true,
+          "1": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.2813362161746008,
+        "train_acc": 90.29012400551136,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 13,
+    "timestamp": 1763990468.8679318,
+    "hash": "ebc51a94a6d90142bd2aa2c7c38d817ea3390f86083e1d17b4ad137c7239d2dd",
+    "previous_hash": "9d6de8e13f37375adda5e82a43e690bf5ca2f687aa53b49e4a1ae8346a948d0d",
+    "nonce": 0,
+    "data": {
+      "model_hash": "93d051a80a880c9d056ea7aa5e7e42ee835a6a4e7fe1e15771ee9ccf7aa7daf6",
+      "committee": [
+        6,
+        2,
+        3,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.4602882063961583,
+        "1": 0.4312107465131325,
+        "2": 0.4645443977360011,
+        "3": 0.46373656250641343,
+        "4": 0.45716163998700565,
+        "5": 0.32105387927141454,
+        "6": 0.495920199651097,
+        "7": 0.3587575024606965,
+        "8": -2.432261631131497,
+        "9": -4.711951345234773
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "2": true,
+          "3": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.27083897096792875,
+        "train_acc": 90.70347571003155,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 14,
+    "timestamp": 1763990604.6071398,
+    "hash": "02aaad0ea61ec79ce4af31d9406d4f43e7be1ccb756c68a78ddd3b3c1a09cdfc",
+    "previous_hash": "ebc51a94a6d90142bd2aa2c7c38d817ea3390f86083e1d17b4ad137c7239d2dd",
+    "nonce": 0,
+    "data": {
+      "model_hash": "7992137aeaf3c1848ff234167d3d386a393bc2bbf5840112fa911f2e39375793",
+      "committee": [
+        3,
+        2,
+        6,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.45474222567308686,
+        "1": 0.3926469353844495,
+        "2": 0.4706154662739655,
+        "3": 0.47359106415459096,
+        "4": 0.4330996763777038,
+        "5": 0.31260144553275576,
+        "6": 0.46936268105841994,
+        "7": 0.34907821635608266,
+        "8": -2.5437938938460807,
+        "9": -4.711410814200673
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "2": true,
+          "6": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.26240093652350066,
+        "train_acc": 90.98515489577315,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 15,
+    "timestamp": 1763990744.6982436,
+    "hash": "4016182cf725657be17821a263d8bb843ad3abfc0f8d926e4ac064882020d644",
+    "previous_hash": "02aaad0ea61ec79ce4af31d9406d4f43e7be1ccb756c68a78ddd3b3c1a09cdfc",
+    "nonce": 0,
+    "data": {
+      "model_hash": "fa277fd3f2c0fc66b050ffe261ce0ee1786f27c0178868d56393e6b213fe4385",
+      "committee": [
+        2,
+        3,
+        0,
+        6,
+        1
+      ],
+      "davs_scores": {
+        "0": 0.45724400911714297,
+        "1": 0.40578230501109147,
+        "2": 0.48169046585311914,
+        "3": 0.46456611145053983,
+        "4": 0.3980503695178931,
+        "5": 0.3043251136560419,
+        "6": 0.4492968577401962,
+        "7": 0.3558997238299129,
+        "8": -2.544290153479244,
+        "9": -4.642467207788325
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "3": true,
+          "0": true,
+          "6": true,
+          "1": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.25551896423917614,
+        "train_acc": 91.18571936530512,
+        "test_loss": 1.0281291616625257,
+        "test_acc": 77.01949860724234
+      }
+    }
+  },
+  {
+    "index": 16,
+    "timestamp": 1763990874.4574497,
+    "hash": "b87eb5cc96b51fffe1cee31f4224c1aa58829afcc20639692bc1e45f8327ee77",
+    "previous_hash": "4016182cf725657be17821a263d8bb843ad3abfc0f8d926e4ac064882020d644",
+    "nonce": 0,
+    "data": {
+      "model_hash": "4b52abab97c49aff700ec78252d541c0453ebd53beb059fad6c9f1b1d15d15a1",
+      "committee": [
+        2,
+        6,
+        0,
+        3,
+        7
+      ],
+      "davs_scores": {
+        "0": 0.45309808895698495,
+        "1": 0.3976547127429002,
+        "2": 0.4687920047213365,
+        "3": 0.42802984883542483,
+        "4": 0.39171617406190096,
+        "5": 0.2965379629464977,
+        "6": 0.45750998763774187,
+        "7": 0.4065316574677306,
+        "8": -2.370774001028215,
+        "9": -4.699690823013212
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "6": true,
+          "0": true,
+          "3": true,
+          "7": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.25164985337174334,
+        "train_acc": 91.4012845015334,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 17,
+    "timestamp": 1763991007.9689214,
+    "hash": "7ea2a253f4a2616f95091c489a1214cc10de68d71977fe771c6e8ae0190018a9",
+    "previous_hash": "b87eb5cc96b51fffe1cee31f4224c1aa58829afcc20639692bc1e45f8327ee77",
+    "nonce": 0,
+    "data": {
+      "model_hash": "e6a5143c9fc052845b7f30c8ca47d022a19d3f2234ca17164376b2b5eb01697b",
+      "committee": [
+        6,
+        2,
+        3,
+        0,
+        1
+      ],
+      "davs_scores": {
+        "0": 0.48196556886687275,
+        "1": 0.45638496148411156,
+        "2": 0.4935855193377361,
+        "3": 0.48562791932659705,
+        "4": 0.45293776030339994,
+        "5": 0.2901799620210404,
+        "6": 0.4950173346510149,
+        "7": 0.38309268675864644,
+        "8": -2.4857529555941853,
+        "9": -4.771130510453117
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "2": true,
+          "3": true,
+          "0": true,
+          "1": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.2400601796791894,
+        "train_acc": 91.81074714431753,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 18,
+    "timestamp": 1763991150.7080846,
+    "hash": "1f8de81a5b8d80299d6aafca7e86abe81b950d59a53bac569c47cb892249fbe4",
+    "previous_hash": "7ea2a253f4a2616f95091c489a1214cc10de68d71977fe771c6e8ae0190018a9",
+    "nonce": 0,
+    "data": {
+      "model_hash": "a964daaa2d619c810bfe5a01316fbbe1f44165f53852d8c31dc9be1d15882966",
+      "committee": [
+        6,
+        3,
+        2,
+        0,
+        4
+      ],
+      "davs_scores": {
+        "0": 0.44824010603530146,
+        "1": 0.4333617565881235,
+        "2": 0.45994428569309725,
+        "3": 0.47855969937152276,
+        "4": 0.4431193945692537,
+        "5": 0.30373231937946904,
+        "6": 0.49058462700872274,
+        "7": 0.36272749014594136,
+        "8": -2.4908044620467695,
+        "9": -4.74302387136857
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "3": true,
+          "2": true,
+          "0": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.239794988132888,
+        "train_acc": 91.83185919374195,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 19,
+    "timestamp": 1763991285.5201933,
+    "hash": "1527af50d3005df99af8d5f9ae8160da9e6d2938c4a4ac2c377eeec6ff6a846f",
+    "previous_hash": "1f8de81a5b8d80299d6aafca7e86abe81b950d59a53bac569c47cb892249fbe4",
+    "nonce": 0,
+    "data": {
+      "model_hash": "78f535d8b21a7f8c0197fca03dd4246e2e69eff0f49a3d66df1effdb3e402694",
+      "committee": [
+        6,
+        2,
+        3,
+        4,
+        0
+      ],
+      "davs_scores": {
+        "0": 0.44794140304824015,
+        "1": 0.4332734331287464,
+        "2": 0.484197863317619,
+        "3": 0.4812829188480007,
+        "4": 0.45304899099781515,
+        "5": 0.2818062113843504,
+        "6": 0.49711472831283354,
+        "7": 0.39521284030504344,
+        "8": -2.5088949585973928,
+        "9": -4.723685395337987
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.2309395167155236,
+        "train_acc": 92.03131250277791,
+        "test_loss": 0.0,
+        "test_acc": 0.0
+      }
+    }
+  },
+  {
+    "index": 20,
+    "timestamp": 1763991438.8242345,
+    "hash": "08fe09c19943c26b3712995e3d24c1a36c85dea5438131600431b9a5dc129040",
+    "previous_hash": "1527af50d3005df99af8d5f9ae8160da9e6d2938c4a4ac2c377eeec6ff6a846f",
+    "nonce": 0,
+    "data": {
+      "model_hash": "6a4960fc2e052b40f7771463f0a8a81fb7850aada98c72fce3eca69a5c11e736",
+      "committee": [
+        0,
+        6,
+        2,
+        3,
+        1
+      ],
+      "davs_scores": {
+        "0": 0.4998718944405898,
+        "1": 0.4670657957762816,
+        "2": 0.48651061849647226,
+        "3": 0.47661618987697824,
+        "4": 0.4581076873197225,
+        "5": 0.3286957024960535,
+        "6": 0.4908583378469129,
+        "7": 0.35898907588753487,
+        "8": -2.5669770824739886,
+        "9": -4.6856616678091765
+      },
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "0": true,
+          "6": true,
+          "2": true,
+          "3": true,
+          "1": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 0,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "round_metrics": {
+        "train_loss": 0.2274250772009224,
+        "train_acc": 92.15020667585226,
+        "test_loss": 1.0072916676931911,
+        "test_acc": 79.15041782729806
+      }
+    }
+  }
+]

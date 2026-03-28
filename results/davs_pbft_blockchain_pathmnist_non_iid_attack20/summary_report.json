@@ -1,0 +1,19 @@
+{
+  "experiment": "davs_pbft_blockchain_pathmnist_non_iid_attack20",
+  "total_rounds": 20,
+  "total_nodes": 10,
+  "malicious_nodes_count": 2,
+  "malicious_ratio": 0.2,
+  "performance": {
+    "final_test_accuracy": 76.04456824512535,
+    "avg_score_separation": 0.16783510429055848,
+    "avg_honest_score": 0.06100274860697633,
+    "avg_malicious_score": -0.10683235568358215
+  },
+  "attack_resistance": {
+    "malicious_selection_rate": 0.02,
+    "random_baseline": 0.2,
+    "attack_success_rate": 0.1,
+    "consensus_failure_rate": 0.0
+  }
+}

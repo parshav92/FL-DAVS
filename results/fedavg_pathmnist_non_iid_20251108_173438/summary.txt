@@ -1,0 +1,31 @@
+============================================================
+FL Experiment Summary
+============================================================
+
+Experiment: fedavg_pathmnist_non_iid
+Timestamp: 2025-11-08 18:09:52
+Total Training Time: 2114.03 seconds (35.23 minutes)
+
+Configuration:
+------------------------------------------------------------
+  dataset: pathmnist
+  num_clients: 10
+  data_split: non_iid
+  local_epochs: 2
+  batch_size: 32
+  learning_rate: 0.001
+  num_rounds: 20
+  device: cpu
+  model: SimpleCNN
+
+Final Results:
+------------------------------------------------------------
+  Final Train Loss: 0.1570
+  Final Train Accuracy: 94.80%
+  Final Test Loss: 0.9374
+  Final Test Accuracy: 83.22%
+
+Best Results:
+------------------------------------------------------------
+  Best Train Accuracy: 94.80% (Round 20)
+  Best Test Accuracy: 83.22% (Round 20)

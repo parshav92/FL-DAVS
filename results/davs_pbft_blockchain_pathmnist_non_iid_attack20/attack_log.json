@@ -1,0 +1,1143 @@
+{
+  "experiment": "davs_pbft_blockchain_pathmnist_non_iid_attack20",
+  "config": {
+    "total_nodes": 10,
+    "malicious_nodes": [
+      8,
+      9
+    ],
+    "honest_nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "malicious_ratio": 0.2
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "davs_scores": {
+        "0": 0.10217404489715894,
+        "1": 0.0473107924270961,
+        "2": 0.09823406653271781,
+        "3": 0.09002944206198056,
+        "4": 0.0769705180492666,
+        "5": 0.035623577837314874,
+        "6": 0.13659599920113882,
+        "7": 0.06454775565200382,
+        "8": -0.11974862383471595,
+        "9": -0.1686758738425043
+      },
+      "committee": [
+        6,
+        0,
+        2,
+        3,
+        4
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.0814357745823347,
+      "honest_std_score": 0.030408007674471525,
+      "malicious_avg_score": -0.1442122488386101,
+      "malicious_std_score": 0.024463625003894172,
+      "score_separation": 0.2256480234209448,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "6": true,
+          "0": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 6,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.8116398917681464,
+        "train_acc": 72.36210498244367,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "124da95e6b537c17178e420e92a89c3e601ec26c2a395e001d32b84febcbcf81"
+    },
+    {
+      "round": 2,
+      "davs_scores": {
+        "0": 0.11129250542985068,
+        "1": 0.1335350846250852,
+        "2": 0.12576322423087227,
+        "3": 0.13617529471715292,
+        "4": 0.1333072433869044,
+        "5": 0.10170862699548404,
+        "6": 0.1272921260032389,
+        "7": 0.15912490586439768,
+        "8": -0.19751117626825967,
+        "9": -0.2431308494673835
+      },
+      "committee": [
+        7,
+        3,
+        1,
+        4,
+        6
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.12852487640662327,
+      "honest_std_score": 0.016078231252720204,
+      "malicious_avg_score": -0.22032101286782158,
+      "malicious_std_score": 0.022809836599561914,
+      "score_separation": 0.3488458892744448,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "7": true,
+          "3": true,
+          "1": true,
+          "4": true,
+          "6": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 7,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.6033024631575226,
+        "train_acc": 79.5263122805458,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "55ff64723906d7249799dd4a93729fbf8ffbd3723a1295afc8a40e5a7ceaba47"
+    },
+    {
+      "round": 3,
+      "davs_scores": {
+        "0": 0.08248856839620405,
+        "1": 0.14161685191922718,
+        "2": 0.13008532114326954,
+        "3": 0.09870440854380529,
+        "4": 0.08116860191027324,
+        "5": 0.01795767547769679,
+        "6": 0.13599041435453627,
+        "7": 0.13097454638530812,
+        "8": -0.08560341927740309,
+        "9": -0.18482294927040735
+      },
+      "committee": [
+        1,
+        6,
+        7,
+        2,
+        3
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.10237329851629007,
+      "honest_std_score": 0.03911625997497785,
+      "malicious_avg_score": -0.13521318427390522,
+      "malicious_std_score": 0.04960976499650213,
+      "score_separation": 0.23758648279019529,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "1": true,
+          "6": true,
+          "7": true,
+          "2": true,
+          "3": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 1,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.46552438521214695,
+        "train_acc": 84.38208364816214,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "374d3956d41c795c51a035d5980008ba8570be9c2a961d2fe30176261551e715"
+    },
+    {
+      "round": 4,
+      "davs_scores": {
+        "0": 0.06906890356913209,
+        "1": 0.006211552484374907,
+        "2": 0.1284505132999685,
+        "3": 0.06288531236350536,
+        "4": 0.009222147080840336,
+        "5": 0.05470145204001003,
+        "6": 0.10585942616065343,
+        "7": 0.035711286020361714,
+        "8": -0.08896471766961946,
+        "9": -0.08641097694635391
+      },
+      "committee": [
+        2,
+        6,
+        0,
+        3,
+        5
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.0590138241273558,
+      "honest_std_score": 0.04025070357439494,
+      "malicious_avg_score": -0.08768784730798668,
+      "malicious_std_score": 0.0012768703616327717,
+      "score_separation": 0.14670167143534246,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "2": true,
+          "6": true,
+          "0": true,
+          "3": true,
+          "5": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 2,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.4000092151879498,
+        "train_acc": 86.56273612160541,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "d48144d0a02bee2dcb8b6336591cb58ad744c34652747b0c2dfbd068e4e3eea1"
+    },
+    {
+      "round": 5,
+      "davs_scores": {
+        "0": 0.02247785109405716,
+        "1": -0.007582560427383416,
+        "2": 0.05180887377355248,
+        "3": 0.018313221012552578,
+        "4": 0.022695923017130956,
+        "5": -0.014203099016514089,
+        "6": 0.0172916147340503,
+        "7": 0.08458245876762602,
+        "8": -0.11260408152722651,
+        "9": -0.061766494893365435
+      },
+      "committee": [
+        7,
+        2,
+        4,
+        0,
+        3
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.024423035369384,
+      "honest_std_score": 0.029539021732504497,
+      "malicious_avg_score": -0.08718528821029597,
+      "malicious_std_score": 0.025418793316930536,
+      "score_separation": 0.11160832357967998,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "7": true,
+          "2": true,
+          "4": true,
+          "0": true,
+          "3": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 7,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.3643029593922141,
+        "train_acc": 87.82168096359838,
+        "test_loss": 0.7076095063156552,
+        "test_acc": 74.9025069637883
+      },
+      "blockchain_hash": "a751bf1e7a3d2c0b3619bd05b0f53bec79a9d8de3c93261a507ebce17b016a55"
+    },
+    {
+      "round": 6,
+      "davs_scores": {
+        "0": 0.01845656583706538,
+        "1": 0.030125017277896404,
+        "2": 0.013854430781470405,
+        "3": 0.006331043317914009,
+        "4": 0.020770687609910965,
+        "5": 0.0038591639863120187,
+        "6": 0.030433167703449726,
+        "7": 0.0407495718035433,
+        "8": -0.03840808653169208,
+        "9": -0.0647577481965224
+      },
+      "committee": [
+        7,
+        6,
+        1,
+        4,
+        0
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.020572456039695278,
+      "honest_std_score": 0.011871189806217668,
+      "malicious_avg_score": -0.051582917364107236,
+      "malicious_std_score": 0.01317483083241516,
+      "score_separation": 0.07215537340380251,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "7": true,
+          "6": true,
+          "1": true,
+          "4": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 7,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.3309114442310013,
+        "train_acc": 88.92673007689231,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "35f692da50aea1105282649dcb4b34887283f8bd85848919951e1905ec78bd98"
+    },
+    {
+      "round": 7,
+      "davs_scores": {
+        "0": -0.006232370518975788,
+        "1": -0.001529864759908782,
+        "2": -0.01588762450652818,
+        "3": 0.006182541760305564,
+        "4": -0.03744124696176085,
+        "5": -0.002168610692024231,
+        "6": -0.02574212673223681,
+        "7": 0.04966895137396124,
+        "8": -0.06660294046418534,
+        "9": -0.04544753395020962
+      },
+      "committee": [
+        7,
+        3,
+        1,
+        5,
+        0
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": -0.004143793879645979,
+      "honest_std_score": 0.024317346708379876,
+      "malicious_avg_score": -0.05602523720719748,
+      "malicious_std_score": 0.010577703256987862,
+      "score_separation": 0.0518814433275515,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "7": true,
+          "3": true,
+          "1": true,
+          "5": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 7,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.30754194759464715,
+        "train_acc": 89.71898751055602,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "a1a140d3bfa82603d7c855434b60943b8507b6eb6413fab11507e934e2553857"
+    },
+    {
+      "round": 8,
+      "davs_scores": {
+        "0": 0.02438781211256153,
+        "1": 0.0012436942844134239,
+        "2": 0.006957466018825976,
+        "3": 0.03388716083847814,
+        "4": 0.00957839287002571,
+        "5": 0.01987371386753188,
+        "6": 0.014806882077310648,
+        "7": -0.014929169814826714,
+        "8": 0.009578420366677973,
+        "9": -0.03093929568098651
+      },
+      "committee": [
+        3,
+        0,
+        5,
+        6,
+        8
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 1,
+      "honest_in_committee": 4,
+      "malicious_selection_rate": 0.2,
+      "honest_avg_score": 0.011975744031790074,
+      "honest_std_score": 0.014029186444513854,
+      "malicious_avg_score": -0.010680437657154268,
+      "malicious_std_score": 0.02025885802383224,
+      "score_separation": 0.022656181688944343,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "0": true,
+          "5": true,
+          "6": true,
+          "8": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": true,
+      "metrics": {
+        "train_loss": 0.28517672877375705,
+        "train_acc": 90.45513133917063,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "7212bb1b2b20314b97e2ab9fd76bfbb7a1187ff3d0d164cd04911e6aa637378c"
+    },
+    {
+      "round": 9,
+      "davs_scores": {
+        "0": 0.31326693958706325,
+        "1": 0.19880931907229954,
+        "2": 0.28858193424012923,
+        "3": 0.29337596893310547,
+        "4": 0.2961643669340346,
+        "5": 0.3036009901099735,
+        "6": 0.28638822833697003,
+        "7": 0.2161739534801907,
+        "8": -0.48039302892155117,
+        "9": -0.482485959927241
+      },
+      "committee": [
+        0,
+        5,
+        4,
+        3,
+        2
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.2745452125867208,
+      "honest_std_score": 0.03975866509577666,
+      "malicious_avg_score": -0.4814394944243961,
+      "malicious_std_score": 0.0010464655028449288,
+      "score_separation": 0.755984707011117,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "0": true,
+          "5": true,
+          "4": true,
+          "3": true,
+          "2": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 0,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 3.028352872552187,
+        "train_acc": 53.810169340859595,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "8d13a80fd47f1a7c3a85d1ecfc72ea4ff92fdac5e744f84a5e7f0bd8e6db24e0"
+    },
+    {
+      "round": 10,
+      "davs_scores": {
+        "0": 0.00254982171787156,
+        "1": 0.1032627709209919,
+        "2": 0.07775319615999858,
+        "3": 0.13800584028164545,
+        "4": 0.07462160765296882,
+        "5": 0.06537284205357234,
+        "6": 0.07577238976955414,
+        "7": 0.10842444457941586,
+        "8": -0.10330018194185363,
+        "9": -0.08748831123941475
+      },
+      "committee": [
+        3,
+        7,
+        1,
+        2,
+        6
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.08072036414200233,
+      "honest_std_score": 0.03703708185199627,
+      "malicious_avg_score": -0.0953942465906342,
+      "malicious_std_score": 0.007905935351219438,
+      "score_separation": 0.1761146107326365,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "7": true,
+          "1": true,
+          "2": true,
+          "6": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.8297927108068386,
+        "train_acc": 71.54984665985155,
+        "test_loss": 1.3228785996966892,
+        "test_acc": 64.3175487465181
+      },
+      "blockchain_hash": "dd892628fa7c6ee18946bb7c7c70e6ec0fe2236b7bb396b883232b1c5d18cef1"
+    },
+    {
+      "round": 11,
+      "davs_scores": {
+        "0": 0.057850813700093165,
+        "1": 0.08948409236553642,
+        "2": 0.07873206006156074,
+        "3": 0.08852028929524952,
+        "4": 0.11167862731963396,
+        "5": 0.13645712203449673,
+        "6": 0.1111898198723793,
+        "7": 0.10360055002901289,
+        "8": -0.11990568041801453,
+        "9": -0.10376229426927036
+      },
+      "committee": [
+        5,
+        4,
+        6,
+        7,
+        1
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.09718917183474535,
+      "honest_std_score": 0.02239344021921024,
+      "malicious_avg_score": -0.11183398734364244,
+      "malicious_std_score": 0.008071693074372083,
+      "score_separation": 0.2090231591783878,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "5": true,
+          "4": true,
+          "6": true,
+          "7": true,
+          "1": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 5,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.54245804617862,
+        "train_acc": 82.1519845326459,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "c3023cc7f3c58964ee27b930428e0c51b7b8b859954c1f5dac64f3142926ce34"
+    },
+    {
+      "round": 12,
+      "davs_scores": {
+        "0": 0.06601129130770762,
+        "1": 0.07459634708033668,
+        "2": 0.06407340139978462,
+        "3": 0.09432912959406774,
+        "4": 0.07973634989725219,
+        "5": 0.053610998723242015,
+        "6": 0.08146388673533995,
+        "7": 0.01921152613229222,
+        "8": -0.11832965620689923,
+        "9": -0.09225977160450485
+      },
+      "committee": [
+        3,
+        6,
+        4,
+        1,
+        0
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.06662911635875288,
+      "honest_std_score": 0.021352547032403777,
+      "malicious_avg_score": -0.10529471390570204,
+      "malicious_std_score": 0.013034942301197186,
+      "score_separation": 0.1719238302644549,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "3": true,
+          "6": true,
+          "4": true,
+          "1": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 3,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.4573338160681773,
+        "train_acc": 85.09822658784834,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "5cd0bb38966beb01779211c1647374104b84446e9f24b079b359628037994bff"
+    },
+    {
+      "round": 13,
+      "davs_scores": {
+        "0": -0.0008975476699156894,
+        "1": 0.05899421705140008,
+        "2": 0.03471935328303112,
+        "3": -0.005807526176795363,
+        "4": 0.0666710533356915,
+        "5": 0.06182754577861892,
+        "6": 0.019583181710913777,
+        "7": 0.01578790694475174,
+        "8": -0.07530903459216158,
+        "9": -0.056409673765301704
+      },
+      "committee": [
+        4,
+        5,
+        1,
+        2,
+        6
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.03135977303221201,
+      "honest_std_score": 0.026817053702996987,
+      "malicious_avg_score": -0.06585935417873165,
+      "malicious_std_score": 0.009449680413429938,
+      "score_separation": 0.09721912721094367,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "4": true,
+          "5": true,
+          "1": true,
+          "2": true,
+          "6": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 4,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.4106166002186368,
+        "train_acc": 86.6027378994622,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "b650f4c5dfc27e5d89035ca7120d828b998b06aa0a4b4ee38bd942bc1463a45a"
+    },
+    {
+      "round": 14,
+      "davs_scores": {
+        "0": 0.012082696633620394,
+        "1": 0.07804248709645537,
+        "2": -0.005282733848111497,
+        "3": 0.0009475835185084078,
+        "4": 0.041055644034511514,
+        "5": 0.016736039477917884,
+        "6": 0.032895235551728144,
+        "7": -0.008366877782262035,
+        "8": -0.09844681827558412,
+        "9": -0.026613531841172114
+      },
+      "committee": [
+        1,
+        4,
+        6,
+        5,
+        0
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.021013759335296023,
+      "honest_std_score": 0.027042938035379605,
+      "malicious_avg_score": -0.06253017505837812,
+      "malicious_std_score": 0.035916643217206,
+      "score_separation": 0.08354393439367414,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "1": true,
+          "4": true,
+          "6": true,
+          "5": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 1,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.3753487769096603,
+        "train_acc": 87.77945686474955,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "0980684ee37ba5cb33cca60e43f2ebf4abd71953f5dc478931cf3666d2b8a3bc"
+    },
+    {
+      "round": 15,
+      "davs_scores": {
+        "0": -0.00986837719877561,
+        "1": -0.02848218712541792,
+        "2": 0.011273894665969742,
+        "3": 0.06285993322833544,
+        "4": 0.06434933323827055,
+        "5": 0.050767082824475236,
+        "6": -0.0034751779296331936,
+        "7": 0.001184727479186323,
+        "8": -0.11782241871373521,
+        "9": -0.0650650455047273
+      },
+      "committee": [
+        4,
+        3,
+        5,
+        2,
+        7
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.01857615364780132,
+      "honest_std_score": 0.033462885618212715,
+      "malicious_avg_score": -0.09144373210923126,
+      "malicious_std_score": 0.026378686604503952,
+      "score_separation": 0.11001988575703259,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "4": true,
+          "3": true,
+          "5": true,
+          "2": true,
+          "7": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 4,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.3601602155378217,
+        "train_acc": 88.31725854482421,
+        "test_loss": 1.0953184564908345,
+        "test_acc": 73.07799442896936
+      },
+      "blockchain_hash": "96e5c06d277be83f8aabab5f9a9705781dea2eff1024b3be2bb006e4e654eb3f"
+    },
+    {
+      "round": 16,
+      "davs_scores": {
+        "0": 0.04660320023281707,
+        "1": -0.01563017639435,
+        "2": -0.0036371492056383025,
+        "3": -0.026534195782409772,
+        "4": 0.005415186699893739,
+        "5": 0.060699687960247196,
+        "6": -0.007427872882948982,
+        "7": 0.05415225587785244,
+        "8": -0.09819265517095725,
+        "9": 0.004925850364896987
+      },
+      "committee": [
+        5,
+        7,
+        0,
+        4,
+        9
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 1,
+      "honest_in_committee": 4,
+      "malicious_selection_rate": 0.2,
+      "honest_avg_score": 0.014205117063182924,
+      "honest_std_score": 0.032055784886826116,
+      "malicious_avg_score": -0.046633402403030134,
+      "malicious_std_score": 0.051559252767927125,
+      "score_separation": 0.06083851946621306,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "5": true,
+          "7": true,
+          "0": true,
+          "4": true,
+          "9": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 5,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": true,
+      "metrics": {
+        "train_loss": 0.3318888795053285,
+        "train_acc": 89.11840526245611,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "0ad15e1b1de2b2fa01bf70985f60c66dbfdcfc925e0b86273ed0566e1a78a807"
+    },
+    {
+      "round": 17,
+      "davs_scores": {
+        "0": 0.0735426363017824,
+        "1": 0.1797234079697066,
+        "2": 0.07242714986205101,
+        "3": 0.1147123740779029,
+        "4": 0.14470309019088745,
+        "5": 0.08929826733138826,
+        "6": 0.10829334333539009,
+        "7": 0.09292402118444443,
+        "8": -0.10916754065288438,
+        "9": -0.1102052696256174
+      },
+      "committee": [
+        1,
+        4,
+        3,
+        6,
+        7
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.10945303628169414,
+      "honest_std_score": 0.03454958954705482,
+      "malicious_avg_score": -0.10968640513925089,
+      "malicious_std_score": 0.0005188644863665104,
+      "score_separation": 0.21913944142094505,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "1": true,
+          "4": true,
+          "3": true,
+          "6": true,
+          "7": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 1,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.5434708103020928,
+        "train_acc": 84.50320014222855,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "2cadcb107240c532534e9d2a87df55c2bca4027fbc1ec5571e5c4c85edf5a304"
+    },
+    {
+      "round": 18,
+      "davs_scores": {
+        "0": 0.08247324544936419,
+        "1": 0.036700069076485105,
+        "2": 0.04144199795296623,
+        "3": 0.045365955085597105,
+        "4": 0.0608023414388299,
+        "5": 0.05383349458376566,
+        "6": 0.04935555956843826,
+        "7": -0.01743503887620237,
+        "8": -0.04563203712718354,
+        "9": -0.0075609034134282
+      },
+      "committee": [
+        0,
+        4,
+        5,
+        6,
+        3
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.04406720303490551,
+      "honest_std_score": 0.0267483994807352,
+      "malicious_avg_score": -0.026596470270305872,
+      "malicious_std_score": 0.01903556685687767,
+      "score_separation": 0.07066367330521138,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "0": true,
+          "4": true,
+          "5": true,
+          "6": true,
+          "3": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 0,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.35890596168357725,
+        "train_acc": 88.41004044624205,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "83b31a1962800bc51b5992c703dc167dce91740382868832213b9ef934e516ed"
+    },
+    {
+      "round": 19,
+      "davs_scores": {
+        "0": 0.0018709702417254448,
+        "1": 0.01551054304258691,
+        "2": -0.02475153323676851,
+        "3": 0.03351204014486737,
+        "4": -0.03016155306249857,
+        "5": 0.041637013769812055,
+        "6": -0.0007296677471862899,
+        "7": 0.01600682818227344,
+        "8": -0.07202012547188336,
+        "9": -0.08159028345512019
+      },
+      "committee": [
+        5,
+        3,
+        7,
+        1,
+        0
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.006611830166851481,
+      "honest_std_score": 0.023796411190578366,
+      "malicious_avg_score": -0.07680520446350178,
+      "malicious_std_score": 0.0047850789916184175,
+      "score_separation": 0.08341703463035326,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "5": true,
+          "3": true,
+          "7": true,
+          "1": true,
+          "0": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 5,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.32915840236581095,
+        "train_acc": 89.37063869505312,
+        "test_loss": null,
+        "test_acc": null
+      },
+      "blockchain_hash": "76e96785b72af7892d81ce030ec969f7a3941cb5def5c1c6d1d2b2ec68dfa62c"
+    },
+    {
+      "round": 20,
+      "davs_scores": {
+        "0": 0.06937571956465642,
+        "1": 0.016485537712772686,
+        "2": -0.005856270384457376,
+        "3": 0.03204448898516906,
+        "4": 0.01914441864937544,
+        "5": 0.022624305203660496,
+        "6": 0.03622481025134524,
+        "7": 0.062029145709756345,
+        "8": -0.06484301451968753,
+        "9": -0.07560049359583193
+      },
+      "committee": [
+        0,
+        7,
+        6,
+        3,
+        5
+      ],
+      "committee_size": 5,
+      "malicious_in_committee": 0,
+      "honest_in_committee": 5,
+      "malicious_selection_rate": 0.0,
+      "honest_avg_score": 0.03150901946153479,
+      "honest_std_score": 0.02302602300417306,
+      "malicious_avg_score": -0.07022175405775974,
+      "malicious_std_score": 0.005378739538072198,
+      "score_separation": 0.10173077351929452,
+      "consensus": {
+        "reached": true,
+        "votes": {
+          "0": true,
+          "7": true,
+          "6": true,
+          "3": true,
+          "5": true
+        },
+        "approve_count": 5,
+        "reject_count": 0,
+        "quorum_size": 3,
+        "phase": "commit",
+        "primary_id": 0,
+        "total_messages": 44,
+        "committee_size": 5
+      },
+      "attack_success": false,
+      "metrics": {
+        "train_loss": 0.3112595724430531,
+        "train_acc": 89.95733143695276,
+        "test_loss": 1.1684541447295083,
+        "test_acc": 76.04456824512535
+      },
+      "blockchain_hash": "42964afbd2e274b308cb79aa7099eff5abe2365f2c725db81a1b5b487931869e"
+    }
+  ]
+}
